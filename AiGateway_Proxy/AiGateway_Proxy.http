@@ -1,0 +1,6 @@
+@AiGateway_Proxy_HostAddress = http://localhost:5218
+
+GET {{AiGateway_Proxy_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
