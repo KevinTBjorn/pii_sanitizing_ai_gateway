@@ -13,6 +13,9 @@ builder.Services.AddReverseProxy()
 
 var app = builder.Build();
 
-app.MapReverseProxy();
+app.MapReverseProxy(proxyPipeline =>
+{
+    proxyPipeline.UseMiddleware<PiiMaskingMiddleware>();
+});
 
 app.Run();
