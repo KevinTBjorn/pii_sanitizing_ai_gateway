@@ -1,5 +1,6 @@
 using AiGateway_Core.Interfaces;
 using AiGateway_Infrastructure.Services;
+using AiGateway_Proxy.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
