@@ -1,6 +1,10 @@
 <Solution>
-  <Project Path="AiGateway_Core/AiGateway_Core.csproj" Id="e8a52cad-ee9b-4eed-a5f6-ff34399c68a5" />
-  <Project Path="AiGateway_EvaluationHarness/AiGateway_EvaluationHarness.csproj" Id="67b04178-5ed3-4db0-bf14-c0ae1d241d63" />
-  <Project Path="AiGateway_Infrastructure/AiGateway_Infrastructure.csproj" Id="852ce427-85d4-4c25-9238-7f4bb81e378b" />
-  <Project Path="AiGateway_Proxy/AiGateway_Proxy.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/AiGateway_Core/AiGateway_Core.csproj" />
+    <Project Path="src/AiGateway_Infrastructure/AiGateway_Infrastructure.csproj" />
+    <Project Path="src/AiGateway_Proxy/AiGateway_Proxy.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AiGateway_EvaluationHarness/AiGateway_EvaluationHarness.csproj" />
+  </Folder>
 </Solution>
