@@ -16,14 +16,6 @@ namespace AiGateway_Infrastructure.Services
         [GeneratedRegex(@"sk-(proj-|admin-)?[a-zA-Z0-9_-]{32,}(?![a-zA-Z0-9_-])")]
         private static partial Regex OpenAiKeyRegex();
 
-        //// Anthropic Claude keys
-        //[GeneratedRegex(@"\bsk-ant-api\d{2}-[a-zA-Z0-9_-]{80,}\b")]
-        //private static partial Regex AnthropicKeyRegex();
-
-        //// GitHub Tokens (Classic ghp_ and fine-grained github_pat_)
-        //[GeneratedRegex(@"\b(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59})\b")]
-        //private static partial Regex GithubTokenRegex();
-
         //Generic Prefixed Tokens (e.g., ak_123..., key-abc..., token_xyz...)
         [GeneratedRegex(@"(?:api[_-]?key|access[_-]?token|secret[_-]?key|auth[_-]?token)\s*[:=]\s*[""']?([a-zA-Z0-9_\-\.]{16,})[""']?", RegexOptions.IgnoreCase)]
         private static partial Regex GenericKeyAssignmentRegex();
@@ -68,18 +60,6 @@ namespace AiGateway_Infrastructure.Services
                 types.Add("OpenAI_API_Key");
                 text = OpenAiKeyRegex().Replace(text, "[MASKED_OPENAI_KEY]");
             }
-
-            //if (GithubTokenRegex().IsMatch(text))
-            //{
-            //    types.Add("GitHub_Token");
-            //    text = GithubTokenRegex().Replace(text, "[MASKED_GITHUB_TOKEN]");
-            //}
-
-            //if (AnthropicKeyRegex().IsMatch(text))
-            //{
-            //    types.Add("Anthropic_API_Key");
-            //    text = AnthropicKeyRegex().Replace(text, "[MASKED_ANTHROPIC_KEY]");
-            //}
 
             if (GenericKeyAssignmentRegex().IsMatch(text))
             {
