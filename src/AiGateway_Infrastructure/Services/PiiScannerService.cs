@@ -6,7 +6,7 @@ namespace AiGateway_Infrastructure.Services
 {
     public partial class PiiScannerService : IPiiScanner
     {
-        [GeneratedRegex(@"(?<![\p{L}0-9._%+-])[\p{L}0-9._%+-]+@[\p{L}0-9.-]+\.[\p{L}]{2,}(?![\p{L}0-9])", RegexOptions.IgnoreCase)]
+        [GeneratedRegex(@"(?<![\p{L}0-9._%+-])[\p{L}0-9._%+-]+@[\p{L}0-9.-]+\.[\p{L}]{2,}(?![\p{L}])", RegexOptions.IgnoreCase)]
         private static partial Regex EmailRegex();
 
         [GeneratedRegex(@"(?<!\d)(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{2}-?\d{4}(?!\d)")]

@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Text;
-using System.Timers;
-using Xunit;
 
 namespace AiGateway_UnitTests.Proxy.Middleware
 {
