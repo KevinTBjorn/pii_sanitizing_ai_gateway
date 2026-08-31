@@ -1,4 +1,5 @@
-﻿using AiGateway_IntegrationTests.Harness;
+﻿using AiGateway_Core.Constants;
+using AiGateway_IntegrationTests.Harness;
 using System.Net;
 using System.Text;
 using WireMock.RequestBuilders;
@@ -60,8 +61,8 @@ namespace AiGateway_IntegrationTests.Middleware
             Assert.DoesNotContain("test.user@domain.dk", receivedRequestBody);
 
             // Verificer at erstatningsteksterne er til stede
-            Assert.Contains("[MASKED_CPR]", receivedRequestBody);
-            Assert.Contains("[MASKED_EMAIL]", receivedRequestBody);
+            Assert.Contains(PiiTokens.Cpr, receivedRequestBody);
+            Assert.Contains(PiiTokens.Email, receivedRequestBody);
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using AiGateway_Core.Constants;
 using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
+using System.Text.RegularExpressions;
 
 namespace AiGateway_Infrastructure.Services
 {
@@ -43,14 +44,14 @@ namespace AiGateway_Infrastructure.Services
         {
             if (!EmailRegex().IsMatch(text)) return text;
             types.Add("Email");
-            return EmailRegex().Replace(text, "[MASKED_EMAIL]");
+            return EmailRegex().Replace(text, PiiTokens.Email);
         }
 
         private static string MaskCprs(string text, List<string> types)
         {
             if (!CprRegex().IsMatch(text)) return text;
             types.Add("Danish_CPR");
-            return CprRegex().Replace(text, "[MASKED_CPR]");
+            return CprRegex().Replace(text, PiiTokens.Cpr);
         }
 
         private static string MaskApiKeys(string text, List<string> types)
@@ -58,13 +59,13 @@ namespace AiGateway_Infrastructure.Services
             if (OpenAiKeyRegex().IsMatch(text))
             {
                 types.Add("OpenAI_API_Key");
-                text = OpenAiKeyRegex().Replace(text, "[MASKED_OPENAI_KEY]");
+                text = OpenAiKeyRegex().Replace(text, PiiTokens.ApiKey);
             }
 
             if (GenericKeyAssignmentRegex().IsMatch(text))
             {
                 types.Add("Generic_Secret");
-                text = GenericKeyAssignmentRegex().Replace(text, "[MASKED_SECRET]");
+                text = GenericKeyAssignmentRegex().Replace(text, PiiTokens.ApiKey);
             }
 
             return text;

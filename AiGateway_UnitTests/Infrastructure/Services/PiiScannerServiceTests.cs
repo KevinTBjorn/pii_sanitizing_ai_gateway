@@ -1,4 +1,5 @@
-﻿using AiGateway_Infrastructure.Services;
+﻿using AiGateway_Core.Constants;
+using AiGateway_Infrastructure.Services;
 
 namespace AiGateway_UnitTests.Infrastructure.Services
 {
@@ -26,10 +27,10 @@ namespace AiGateway_UnitTests.Infrastructure.Services
         #region Email Masking
 
         [Theory]
-        [InlineData("Kontakt mig på user@domain.com for hjælp.", "Kontakt mig på [MASKED_EMAIL] for hjælp.")]
-        [InlineData("Send til søren@ræv.dk tak.", "Send til [MASKED_EMAIL] tak.")]
-        [InlineData("Skriv til <info+tag@firma.co.uk>.", "Skriv til <[MASKED_EMAIL]>.")]
-        [InlineData("E-mail:bjørn.ægidius@ecg.dk", "E-mail:[MASKED_EMAIL]")]
+        [InlineData("Kontakt mig på user@domain.com for hjælp.", $"Kontakt mig på {PiiTokens.Email} for hjælp.")]
+        [InlineData("Send til søren@ræv.dk tak.", $"Send til {PiiTokens.Email} tak.")]
+        [InlineData("Skriv til <info+tag@firma.co.uk>.", $"Skriv til <{PiiTokens.Email}>.")]
+        [InlineData("E-mail:bjørn.ægidius@ecg.dk", $"E-mail:{PiiTokens.Email}")]
         public void ScanAndMask_ShouldMaskEmailsCorrectly(string input, string expected)
         {
             var result = _sut.ScanAndMask(input);
@@ -57,8 +58,8 @@ namespace AiGateway_UnitTests.Infrastructure.Services
         #region CPR Masking
 
         [Theory]
-        [InlineData("Mit CPR er 120395-1234.", "Mit CPR er [MASKED_CPR].")]
-        [InlineData("CPR u. bindestreg: 1203951234", "CPR u. bindestreg: [MASKED_CPR]")]
+        [InlineData("Mit CPR er 120395-1234.", $"Mit CPR er {PiiTokens.Cpr}.")]
+        [InlineData("CPR u. bindestreg: 1203951234", $"CPR u. bindestreg: {PiiTokens.Cpr}")]
         public void ScanAndMask_ValidCpr_ShouldMaskCpr(string input, string expected)
         {
             var result = _sut.ScanAndMask(input);
@@ -86,9 +87,9 @@ namespace AiGateway_UnitTests.Infrastructure.Services
         #region OpenAI API Key Masking
 
         [Theory]
-        [InlineData("Her er min nøgle: sk-proj-12345678901234567890123456789012", "Her er min nøgle: [MASKED_OPENAI_KEY]")]
-        [InlineData("thesk-admin-123456789012345678901234567890123456", "the[MASKED_OPENAI_KEY]")]
-        [InlineData("OPENAI_KEY=sk-12345678901234567890123456789012", "OPENAI_KEY=[MASKED_OPENAI_KEY]")]
+        [InlineData("Her er min nøgle: sk-proj-12345678901234567890123456789012", $"Her er min nøgle: {PiiTokens.ApiKey}")]
+        [InlineData("thesk-admin-123456789012345678901234567890123456", $"the{PiiTokens.ApiKey}")]
+        [InlineData("OPENAI_KEY=sk-12345678901234567890123456789012", $"OPENAI_KEY={PiiTokens.ApiKey}")]
         public void ScanAndMask_OpenAiKey_ShouldMaskKey(string input, string expected)
         {
             var result = _sut.ScanAndMask(input);
@@ -116,9 +117,9 @@ namespace AiGateway_UnitTests.Infrastructure.Services
         #region Generic Key Assignment Masking
 
         [Theory]
-        [InlineData("api_key = \"123456789012345678\"", "[MASKED_SECRET]")]
-        [InlineData("access_token: 'abcdefghijklmnopqrstuvwxyz123'", "[MASKED_SECRET]")]
-        [InlineData("auth-token=12345678901234567890", "[MASKED_SECRET]")]
+        [InlineData("api_key = \"123456789012345678\"", $"{PiiTokens.ApiKey}")]
+        [InlineData("access_token: 'abcdefghijklmnopqrstuvwxyz123'", $"{PiiTokens.ApiKey}")]
+        [InlineData("auth-token=12345678901234567890", $"{PiiTokens.ApiKey}")]
         public void ScanAndMask_GenericSecretAssignment_ShouldMaskEntireAssignment(string input, string expected)
         {
             var result = _sut.ScanAndMask(input);
@@ -153,7 +154,7 @@ namespace AiGateway_UnitTests.Infrastructure.Services
             var result = _sut.ScanAndMask(prompt);
 
             Assert.True(result.HasSensitiveData);
-            Assert.Equal("Bruger [MASKED_EMAIL] har CPR [MASKED_CPR] og key [MASKED_OPENAI_KEY]", result.CleanedPrompt);
+            Assert.Equal($"Bruger {PiiTokens.Email} har CPR {PiiTokens.Cpr} og key {PiiTokens.ApiKey}", result.CleanedPrompt);
             Assert.Equal(3, result.DetectedTypes.Count);
             Assert.Contains("Email", result.DetectedTypes);
             Assert.Contains("Danish_CPR", result.DetectedTypes);
