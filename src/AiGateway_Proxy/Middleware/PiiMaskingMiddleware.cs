@@ -43,7 +43,7 @@ namespace AiGateway_Proxy.Middleware
                         _logger.LogInformation("PII fundet og maskeret i request til: {Path}", context.Request.Path);
 
                         //check data
-                        _logger.LogInformation("Maskeret JSON sendt videre: {MaskedJson}", maskedBody);
+                        _logger.LogInformation("Redacted JSON sendt videre: {MaskedJson}", maskedBody);
 
                         var bytes = Encoding.UTF8.GetBytes(maskedBody);
                         var modifiedStream = new MemoryStream(bytes);
