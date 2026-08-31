@@ -1,29 +1,26 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
+ENV ASPNETCORE_HTTP_PORTS=8080
 
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["AiGateway_Proxy/AiGateway_Proxy.csproj", "AiGateway_Proxy/"]
-RUN dotnet restore "./AiGateway_Proxy/AiGateway_Proxy.csproj"
+COPY ["src/AiGateway_Proxy/AiGateway_Proxy.csproj", "src/AiGateway_Proxy/"]
+COPY ["src/AiGateway_Core/AiGateway_Core.csproj", "src/AiGateway_Core/"]
+COPY ["src/AiGateway_Infrastructure/AiGateway_Infrastructure.csproj", "src/AiGateway_Infrastructure/"]
+
+
+RUN dotnet restore "src/AiGateway_Proxy/AiGateway_Proxy.csproj"
+
 COPY . .
-WORKDIR "/src/AiGateway_Proxy"
-RUN dotnet build "./AiGateway_Proxy.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/src/AiGateway_Proxy"
+RUN dotnet build "AiGateway_Proxy.csproj" -c Release -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./AiGateway_Proxy.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "AiGateway_Proxy.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .

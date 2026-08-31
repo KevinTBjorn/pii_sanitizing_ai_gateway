@@ -1,6 +1,7 @@
 using AiGateway_Core.Interfaces;
 using AiGateway_Infrastructure.Services;
 using AiGateway_Proxy.Middleware;
+using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,9 +12,18 @@ builder.Services.AddSingleton<IPiiScanner, PiiScannerService>();
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation(); // Indsamler CPU, RAM, HTTP request-tider osv.
+        metrics.AddPrometheusExporter();        // Formaterer metrics til Prometheus
+    });
+
 var app = builder.Build();
 
 app.UseMiddleware<PiiMaskingMiddleware>();
+
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.MapReverseProxy();
 

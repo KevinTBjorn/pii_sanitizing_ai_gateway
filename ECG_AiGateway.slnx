@@ -1,6 +1,14 @@
 <Solution>
+  <Folder Name="/Infra/">
+    <File Path="prometheus.yml" />
+  </Folder>
+  <Folder Name="/Infra/provisioning/" />
+  <Folder Name="/Infra/provisioning/datasources/">
+    <File Path="datasource.yml" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path="azure-pipelines.yml" />
+    <File Path="docker-compose.yml" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/AiGateway_Core/AiGateway_Core.csproj" />
