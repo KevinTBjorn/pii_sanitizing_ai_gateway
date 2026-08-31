@@ -1,12 +1,15 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="azure-pipelines.yml" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/AiGateway_Core/AiGateway_Core.csproj" />
     <Project Path="src/AiGateway_Infrastructure/AiGateway_Infrastructure.csproj" />
     <Project Path="src/AiGateway_Proxy/AiGateway_Proxy.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="AiGateway_IntegrationTests/AiGateway_IntegrationTests.csproj" Id="e0123a83-02ca-48d6-bb80-f637a23b3aae" />
-    <Project Path="AiGateway_UnitTests/AiGateway_UnitTests.csproj" Id="ad4380df-9749-4517-b7d6-ddda9ad0d9a1" />
     <Project Path="tests/AiGateway_EvaluationHarness/AiGateway_EvaluationHarness.csproj" />
+    <Project Path="tests/AiGateway_IntegrationTests/AiGateway_IntegrationTests.csproj" />
+    <Project Path="tests/AiGateway_UnitTests/AiGateway_UnitTests.csproj" />
   </Folder>
 </Solution>
