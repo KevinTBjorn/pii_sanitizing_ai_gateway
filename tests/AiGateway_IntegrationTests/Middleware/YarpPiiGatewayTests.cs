@@ -45,7 +45,7 @@ namespace AiGateway_IntegrationTests.Middleware
             var content = new StringContent(unmaskedJson, Encoding.UTF8, "application/json");
 
             // Act: Send request mod vores in-memory YARP proxy
-            var response = await client.PostAsync("/v1/chat/completions", content);
+            var response = await client.PostAsync("/v1/chat/completions", content, TestContext.Current.CancellationToken);
 
             // Assert 1: Proxyen returnerer succesfuldt svar
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -54,7 +54,10 @@ namespace AiGateway_IntegrationTests.Middleware
             var logEntries = _harness.MockServer.LogEntries;
             Assert.Single(logEntries);
 
-            var receivedRequestBody = logEntries.First().RequestMessage.Body;
+            var firstLog = logEntries.First();
+            Assert.NotNull(firstLog.RequestMessage);
+
+            var receivedRequestBody = firstLog.RequestMessage.Body;
 
             // Verificer at følsomme oplysninger IKKE er i det videresendte request
             Assert.DoesNotContain("1205991234", receivedRequestBody);
