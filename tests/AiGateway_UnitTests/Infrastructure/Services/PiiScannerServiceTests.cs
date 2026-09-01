@@ -1,5 +1,7 @@
 ﻿using AiGateway_Core.Constants;
 using AiGateway_Infrastructure.Services;
+using AiGateway_Infrastructure.Telemetry;
+using System.Diagnostics.Metrics;
 
 namespace AiGateway_UnitTests.Infrastructure.Services
 {
@@ -159,6 +161,9 @@ namespace AiGateway_UnitTests.Infrastructure.Services
             Assert.Contains("Email", result.DetectedTypes);
             Assert.Contains("Danish_CPR", result.DetectedTypes);
             Assert.Contains("OpenAI_API_Key", result.DetectedTypes);
+            Assert.DoesNotContain("søren@ræv.dk", result.CleanedPrompt);
+            Assert.DoesNotContain("120395-1234", result.CleanedPrompt);
+            Assert.DoesNotContain("sk-proj-12345678901234567890123456789012", result.CleanedPrompt);
         }
 
         [Fact]
@@ -174,5 +179,42 @@ namespace AiGateway_UnitTests.Infrastructure.Services
         }
 
         #endregion
+
+        #region Metrics Counter Increment Test
+        [Fact]
+        public void ScanAndMask_ShouldIncrementPiiMetricsCounter()
+        {
+            // Arrange: Opsæt en MeterListener til at lytte på vore static PiiMetrics
+            long recordedValue = 0;
+            string? recordedPiiType = null;
+
+            using var listener = new MeterListener();
+            listener.InstrumentPublished = (instrument, meterListener) =>
+            {
+                if (instrument.Meter.Name == PiiMetrics.MeterName && instrument.Name == PiiMetrics.PiiMaskedCounterName)
+                {
+                    meterListener.EnableMeasurementEvents(instrument);
+                }
+            };
+
+            listener.SetMeasurementEventCallback<long>((instrument, measurement, tags, state) =>
+            {
+                recordedValue += measurement;
+                foreach (var tag in tags)
+                {
+                    if (tag.Key == "pii_type") recordedPiiType = tag.Value?.ToString();
+                }
+            });
+
+            listener.Start();
+
+            // Act
+            _sut.ScanAndMask("Send til mail1@test.dk og mail2@test.dk");
+
+            // Assert
+            Assert.Equal(2, recordedValue); // Forventer 2 e-mails talt op
+            Assert.Equal("masked_email", recordedPiiType);
+        }
     }
+        #endregion
 }
