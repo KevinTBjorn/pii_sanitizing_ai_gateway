@@ -1,6 +1,7 @@
 using AiGateway_Core.Interfaces;
 using AiGateway_Infrastructure.Services;
 using AiGateway_Proxy.Middleware;
+using AiGateway_Infrastructure.Telemetry;
 using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.AddOpenTelemetry()
     .WithMetrics(metrics =>
     {
         metrics.AddAspNetCoreInstrumentation(); // Indsamler CPU, RAM, HTTP request-tider osv.
+        metrics.AddMeter(PiiMetrics.MeterName);
         metrics.AddPrometheusExporter();        // Formaterer metrics til Prometheus
     });
 

@@ -2,8 +2,8 @@
 {
     public static class PiiTokens
     {
-        public const string Cpr = "[REDACTED_CPR]";
-        public const string Email = "[REDACTED_EMAIL]";
-        public const string ApiKey = "[REDACTED_API_KEY]";
+        public const string Cpr = "[MASKED_CPR]";
+        public const string Email = "[MASKED_EMAIL]";
+        public const string ApiKey = "[MASKED_API_KEY]";
     }
 }

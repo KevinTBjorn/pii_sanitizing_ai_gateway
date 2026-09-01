@@ -1,6 +1,7 @@
 ﻿using AiGateway_Core.Constants;
 using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
+using AiGateway_Infrastructure.Telemetry;
 using System.Text.RegularExpressions;
 
 namespace AiGateway_Infrastructure.Services
@@ -42,29 +43,37 @@ namespace AiGateway_Infrastructure.Services
 
         private static string MaskEmails(string text, List<string> types)
         {
-            if (!EmailRegex().IsMatch(text)) return text;
+            int matchCount = EmailRegex().Matches(text).Count;
+            if (matchCount == 0) return text;
             types.Add("Email");
+            PiiMetrics.RecordMaskedItem("masked_email", matchCount);
             return EmailRegex().Replace(text, PiiTokens.Email);
         }
 
         private static string MaskCprs(string text, List<string> types)
         {
-            if (!CprRegex().IsMatch(text)) return text;
+            int matchCount = CprRegex().Matches(text).Count;
+            if (matchCount == 0) return text;
             types.Add("Danish_CPR");
+            PiiMetrics.RecordMaskedItem("masked_cpr", matchCount);
             return CprRegex().Replace(text, PiiTokens.Cpr);
         }
 
         private static string MaskApiKeys(string text, List<string> types)
         {
-            if (OpenAiKeyRegex().IsMatch(text))
+            int openAiMatchCount = OpenAiKeyRegex().Matches(text).Count;
+            if (openAiMatchCount > 0)
             {
                 types.Add("OpenAI_API_Key");
+                PiiMetrics.RecordMaskedItem("masked_openai_key", openAiMatchCount);
                 text = OpenAiKeyRegex().Replace(text, PiiTokens.ApiKey);
             }
 
-            if (GenericKeyAssignmentRegex().IsMatch(text))
+            int genericMatchCount = GenericKeyAssignmentRegex().Matches(text).Count;
+            if (genericMatchCount > 0)
             {
                 types.Add("Generic_Secret");
+                PiiMetrics.RecordMaskedItem("masked_generic_key", genericMatchCount);
                 text = GenericKeyAssignmentRegex().Replace(text, PiiTokens.ApiKey);
             }
 

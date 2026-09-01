@@ -16,7 +16,7 @@ namespace AiGateway_UnitTests.Proxy.Middleware
             // Arrange
             var mockScanner = new Mock<IPiiScanner>();
             var originalJson = "{\"message\": \"Mit CPR er 123456-7890\"}";
-            var maskedJson = "{\"message\": \"Mit CPR er [REDACTED_CPR]\"}";
+            var maskedJson = "{\"message\": \"Mit CPR er [MASKED_CPR]\"}";
 
             // Opsæt scanner-mock til at returnere det maskerede resultat
             mockScanner.Setup(s => s.ScanAndMask(originalJson))
