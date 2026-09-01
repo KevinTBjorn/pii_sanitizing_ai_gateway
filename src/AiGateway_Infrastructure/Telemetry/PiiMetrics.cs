@@ -5,11 +5,12 @@ namespace AiGateway_Infrastructure.Telemetry;
 public static class PiiMetrics
 {
     public const string MeterName = "AiGateway.Infrastructure";
+    public const string PiiMaskedCounterName = "aigateway_pii_masked_total";
 
     private static readonly Meter Meter = new(MeterName, "1.0.0");
 
     private static readonly Counter<long> PiiMaskedCounter = Meter.CreateCounter<long>(
-        name: "aigateway_pii_masked_total",
+        name: PiiMaskedCounterName,
         unit: "{items}",
         description: "Antal maskerede PII-forekomster opdelt på type"
     );
