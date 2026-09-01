@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'PII Telemetry Dashboards'
+    orgId: 1
+    folder: 'AI Gateway'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
