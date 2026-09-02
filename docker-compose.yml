@@ -24,6 +24,13 @@ services:
     depends_on:
       - prometheus
     
+  presidio-analyzer:
+    image: mcr.microsoft.com/presidio-analyzer:latest
+    container_name: presidio_analyzer
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
