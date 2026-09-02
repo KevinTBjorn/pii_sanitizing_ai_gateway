@@ -23,3 +23,30 @@ services:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
+    
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  # Helper container that automatically pulls the model once Ollama starts
+  ollama-model-pull:
+    image: curlimages/curl:latest
+    container_name: ollama_model_pull
+    depends_on:
+      - ollama
+    entrypoint: >
+      sh -c "
+      echo 'Waiting for Ollama to be ready...';
+      until curl -s http://ollama:11434/api/tags > /dev/null; do sleep 2; done;
+      echo 'Pulling smollm:135m model...';
+      curl -s http://ollama:11434/api/pull -d '{\"name\": \"smollm:135m\"}';
+      echo 'Model ready!';
+      "
+
+volumes:
+  ollama_data:
