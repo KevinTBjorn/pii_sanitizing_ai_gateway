@@ -1,7 +1,7 @@
 services:
   prometheus:
     image: prom/prometheus:v2.51.0
-    container_name: aigateway-prometheus
+    container_name: prometheus
     restart: unless-stopped
     ports:
       - "9090:9090"
@@ -12,7 +12,7 @@ services:
 
   grafana:
     image: grafana/grafana:10.4.0
-    container_name: aigateway-grafana
+    container_name: grafana
     restart: unless-stopped
     ports:
       - "3000:3000"
