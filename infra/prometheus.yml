@@ -5,4 +5,4 @@ scrape_configs:
   - job_name: 'aigateway-proxy'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['aigateway-proxy:8080']
+      - targets: ['host.docker.internal:5218']
