@@ -28,12 +28,12 @@ namespace AiGateway_Proxy.Middleware
                     detectEncodingFromByteOrderMarks: false,
                     leaveOpen: true);
 
-                var originalBody = await reader.ReadToEndAsync();
+                var originalBody = await reader.ReadToEndAsync(context.RequestAborted);
                 context.Request.Body.Position = 0; // Spol streamen tilbage til start!
 
                 if (!string.IsNullOrWhiteSpace(originalBody))
                 {
-                    var scanResult = piiScanner.ScanAndMask(originalBody);
+                    var scanResult = await piiScanner.ScanAndMaskAsync(originalBody, context.RequestAborted);
 
                     var maskedBody = scanResult.CleanedPrompt;
 
@@ -42,8 +42,9 @@ namespace AiGateway_Proxy.Middleware
                     {
                         _logger.LogInformation("PII fundet og maskeret i request til: {Path}", context.Request.Path);
 
-                        //check data
-                        _logger.LogInformation("Masked JSON sendt videre: {MaskedJson}, Types: {PiiTypes}", maskedBody, scanResult.DetectedTypes);
+                        // Formaterer typerne pænt som en kommasepareret streng i loggen
+                        var piiTypesFormatted = string.Join(", ", scanResult.DetectedTypes);
+                        _logger.LogInformation("Masked JSON sendt videre: {MaskedJson}, Types: {PiiTypes}", maskedBody, piiTypesFormatted);
 
                         var bytes = Encoding.UTF8.GetBytes(maskedBody);
                         var modifiedStream = new MemoryStream(bytes);

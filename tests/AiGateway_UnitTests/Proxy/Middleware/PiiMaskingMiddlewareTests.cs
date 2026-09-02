@@ -19,12 +19,12 @@ namespace AiGateway_UnitTests.Proxy.Middleware
             var maskedJson = "{\"message\": \"Mit CPR er [MASKED_CPR]\"}";
 
             // Opsæt scanner-mock til at returnere det maskerede resultat
-            mockScanner.Setup(s => s.ScanAndMask(originalJson))
-                       .Returns(new PiiScanResult(
+            mockScanner.Setup(s => s.ScanAndMaskAsync(originalJson))
+                       .Returns(Task.FromResult(new PiiScanResult(
                            HasSensitiveData: true,
                            CleanedPrompt: maskedJson,
                            DetectedTypes: new[] { "CPR" }
-                       ));
+                       )));
 
             // Opret HttpContext og fyld request body
             var context = new DefaultHttpContext();
@@ -52,7 +52,7 @@ namespace AiGateway_UnitTests.Proxy.Middleware
             // Læs den modificerede request body ud
             context.Request.Body.Position = 0;
             using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
-            var actualBody = await reader.ReadToEndAsync();
+            var actualBody = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
 
             Assert.Equal(maskedJson, actualBody);
             Assert.Equal(Encoding.UTF8.GetBytes(maskedJson).Length, context.Request.ContentLength);
@@ -73,7 +73,7 @@ namespace AiGateway_UnitTests.Proxy.Middleware
             await middleware.InvokeAsync(context, mockScanner.Object);
 
             // Assert
-            mockScanner.Verify(s => s.ScanAndMask(It.IsAny<string>()), Times.Never);
+            mockScanner.Verify(s => s.ScanAndMaskAsync(It.IsAny<string>()), Times.Never);
         }
     }
 }

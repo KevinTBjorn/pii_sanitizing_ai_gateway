@@ -7,7 +7,7 @@ using OpenTelemetry.Metrics;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Registrer PiiScannerService under IPiiScanner grænsefladen
-builder.Services.AddSingleton<IPiiScanner, PiiScannerService>();
+builder.Services.AddSingleton<IPiiScanner, RegexPiiScanner>();
 
 // 2. Registrer YARP Reverse Proxy
 builder.Services.AddReverseProxy()

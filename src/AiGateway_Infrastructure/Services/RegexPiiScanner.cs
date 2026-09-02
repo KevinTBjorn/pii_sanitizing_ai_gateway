@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace AiGateway_Infrastructure.Services
 {
-    public partial class PiiScannerService : IPiiScanner
+    public partial class RegexPiiScanner : IPiiScanner
     {
         [GeneratedRegex(@"(?<![\p{L}0-9._%+-])[\p{L}0-9._%+-]+@[\p{L}0-9.-]+\.[\p{L}]{2,}(?![\p{L}])", RegexOptions.IgnoreCase)]
         private static partial Regex EmailRegex();
@@ -22,10 +22,16 @@ namespace AiGateway_Infrastructure.Services
         [GeneratedRegex(@"(?:api[_-]?key|access[_-]?token|secret[_-]?key|auth[_-]?token)\s*[:=]\s*[""']?([a-zA-Z0-9_\-\.]{16,})[""']?", RegexOptions.IgnoreCase)]
         private static partial Regex GenericKeyAssignmentRegex();
 
-        public PiiScanResult ScanAndMask(string prompt)
+        public Task<PiiScanResult> ScanAndMaskAsync(string prompt, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
-                return new PiiScanResult(false, prompt, Array.Empty<string>());
+            {
+                return Task.FromResult(new PiiScanResult(
+                    HasSensitiveData: false,
+                    CleanedPrompt: prompt,
+                    DetectedTypes: Array.Empty<string>()
+                ));
+            }
 
             var detectedTypes = new List<string>();
             string currentPrompt = prompt;
@@ -34,11 +40,13 @@ namespace AiGateway_Infrastructure.Services
             currentPrompt = MaskCprs(currentPrompt, detectedTypes);
             currentPrompt = MaskApiKeys(currentPrompt, detectedTypes);
 
-            return new PiiScanResult(
+            var result = new PiiScanResult(
                 HasSensitiveData: detectedTypes.Count > 0,
                 CleanedPrompt: currentPrompt,
                 DetectedTypes: detectedTypes.AsReadOnly()
             );
+
+            return Task.FromResult(result);
         }
 
         private static string MaskEmails(string text, List<string> types)
