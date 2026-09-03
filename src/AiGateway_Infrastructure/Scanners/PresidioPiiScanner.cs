@@ -1,8 +1,9 @@
-﻿using System.Net.Http.Json;
+﻿using AiGateway_Core.Interfaces;
+using AiGateway_Core.Models;
+using AiGateway_Infrastructure.Telemetry;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
 
 namespace AiGateway_Infrastructure.Scanners
 {
@@ -49,9 +50,18 @@ namespace AiGateway_Infrastructure.Scanners
                 .OrderByDescending(e => e.Start) // Bagfra for ikke at ødelægge index
                 .ToList();
 
+            if (entities.Count == 0)
+            {
+                return new PiiScanResult(
+                    HasSensitiveData: false,
+                    CleanedPrompt: prompt,
+                    DetectedTypes: Array.Empty<string>()
+                );
+            }
+
             // 3. Masker teksten i C#
             var builder = new StringBuilder(prompt);
-            var detectedTypes = new List<string>();
+            var detectedTypes = new HashSet<string>();
 
             foreach (var entity in entities)
             {
@@ -59,17 +69,18 @@ namespace AiGateway_Infrastructure.Scanners
                 builder.Remove(entity.Start, length);
                 builder.Insert(entity.Start, $"[{entity.Type}]");
                 detectedTypes.Add(entity.Type);
+
+                // Registrer i Prometheus/OpenTelemetry metrics
+                PiiMetrics.RecordMaskedItem($"presidio_{entity.Type.ToLowerInvariant()}", 1);
             }
 
             // 4. Returner dit PiiScanResult
-            var result = new PiiScanResult
+            return new PiiScanResult
             (
-                HasSensitiveData: entities.Count > 0,
+                HasSensitiveData: true,
                 CleanedPrompt: builder.ToString(),
-                DetectedTypes: detectedTypes
+                DetectedTypes: detectedTypes.ToList().AsReadOnly()
             );
-
-            return result;
         }
     }
 }
