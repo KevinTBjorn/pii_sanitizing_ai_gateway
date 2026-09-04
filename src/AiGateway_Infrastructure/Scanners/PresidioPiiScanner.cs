@@ -33,10 +33,10 @@ namespace AiGateway_Infrastructure.Scanners
             var detectedLanguage = _languageDetector.DetectLanguage(prompt);
 
             // 1. Send request til Presidio Analyzer i Docker
-            var response = await _httpClient.PostAsJsonAsync("/analyze", new
+            var response = await _httpClient.PostAsJsonAsync("analyze", new
             {
                 text = prompt,
-                language = detectedLanguage
+                language = "en"
             }, cancellationToken);
 
             response.EnsureSuccessStatusCode();

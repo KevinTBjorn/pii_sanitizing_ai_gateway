@@ -28,7 +28,7 @@ services:
     image: mcr.microsoft.com/presidio-analyzer:latest
     container_name: presidio_analyzer
     ports:
-      - "5001:5001"
+      - "127.0.0.1:5001:3000"
     restart: unless-stopped
 
   ollama:
