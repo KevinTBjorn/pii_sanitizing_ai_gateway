@@ -28,12 +28,18 @@ namespace AiGateway_IntegrationTests.Harness
         {
             builder.ConfigureAppConfiguration((_, config) =>
             {
-                var overrideSettings = new Dictionary<string, string?>
+                // Inicerer et dedikeret "test-setup", som tilføjes direkte i hukommelsen
+                var isolatedTestConfig = new Dictionary<string, string?>
                 {
-                    // Matcher præcist: ReverseProxy -> Clusters -> llm-cluster -> Destinations -> llm-destination1 -> Address
-                    ["ReverseProxy:Clusters:llm-cluster:Destinations:llm-destination1:Address"] = MockServer.Url
+                    // 1. Opret en eksplicit test-rute, der fanger alle /v1/ kald
+                    ["ReverseProxy:Routes:integration-test-route:ClusterId"] = "integration-test-cluster",
+                    ["ReverseProxy:Routes:integration-test-route:Match:Path"] = "/v1/{**catch-all}",
+
+                    // 2. Peg test-klyngen direkte på WireMocks dynamiske port
+                    ["ReverseProxy:Clusters:integration-test-cluster:Destinations:mock-destination:Address"] = MockServer.Url
                 };
-                config.AddInMemoryCollection(overrideSettings);
+
+                config.AddInMemoryCollection(isolatedTestConfig);
             });
         }
     }

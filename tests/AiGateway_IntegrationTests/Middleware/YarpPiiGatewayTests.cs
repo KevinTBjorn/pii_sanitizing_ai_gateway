@@ -31,16 +31,16 @@ namespace AiGateway_IntegrationTests.Middleware
             var client = _harness.CreateClient();
 
             var unmaskedJson = """
-        {
-          "model": "gpt-4o",
-          "messages": [
             {
-              "role": "user",
-              "content": "Kontakt mig på test.user@domain.dk eller CPR 1205991234."
+              "model": "gpt-4o",
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Kontakt mig på test.user@domain.dk eller CPR 1205991234."
+                }
+              ]
             }
-          ]
-        }
-        """;
+            """;
 
             var content = new StringContent(unmaskedJson, Encoding.UTF8, "application/json");
 

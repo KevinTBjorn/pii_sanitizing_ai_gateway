@@ -1,4 +1,5 @@
 using AiGateway_Core.Interfaces;
+using AiGateway_Infrastructure.Language;
 using AiGateway_Infrastructure.Scanners;
 using AiGateway_Infrastructure.Services;
 using AiGateway_Infrastructure.Telemetry;
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Registrer PiiScannerService under IPiiScanner grænsefladen
 builder.Services.AddSingleton<IPiiScanner, RegexPiiScanner>();
+builder.Services.AddSingleton<ILanguageDetector, LinguaLanguageDetector>();
 
 // Registrer PresidioPiiScanner med en konfigureret HttpClient
 builder.Services.AddHttpClient<PresidioPiiScanner>(client =>

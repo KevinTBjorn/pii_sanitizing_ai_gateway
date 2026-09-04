@@ -11,10 +11,12 @@ namespace AiGateway_Infrastructure.Scanners
     public class PresidioPiiScanner : IPiiScanner
     {
         private readonly HttpClient _httpClient;
+        private readonly ILanguageDetector _languageDetector;
 
-        public PresidioPiiScanner(HttpClient httpClient)
+        public PresidioPiiScanner(HttpClient httpClient, ILanguageDetector languageDetector)
         {
             _httpClient = httpClient;
+            _languageDetector = languageDetector;
         }
 
         public async Task<PiiScanResult> ScanAndMaskAsync(string prompt, CancellationToken cancellationToken = default)
@@ -28,11 +30,13 @@ namespace AiGateway_Infrastructure.Scanners
                 );
             }
 
+            var detectedLanguage = _languageDetector.DetectLanguage(prompt);
+
             // 1. Send request til Presidio Analyzer i Docker
             var response = await _httpClient.PostAsJsonAsync("/analyze", new
             {
                 text = prompt,
-                language = "en"
+                language = detectedLanguage
             }, cancellationToken);
 
             response.EnsureSuccessStatusCode();
