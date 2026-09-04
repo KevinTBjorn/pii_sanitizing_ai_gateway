@@ -4,6 +4,7 @@ using AiGateway_Infrastructure.Telemetry;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using Lingua;
 
 namespace AiGateway_Infrastructure.Scanners
 {
