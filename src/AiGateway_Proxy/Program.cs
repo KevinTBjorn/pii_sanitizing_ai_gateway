@@ -8,7 +8,7 @@ using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<IPiiScanner, RegexPiiScanner>();
+//builder.Services.AddSingleton<IPiiScanner, RegexPiiScanner>();
 
 var supportedLanguages = builder.Configuration
     .GetSection("LanguageDetection:SupportedLanguages")
@@ -16,15 +16,15 @@ var supportedLanguages = builder.Configuration
 
 builder.Services.AddSingleton<ILanguageDetector>(new LinguaLanguageDetector(supportedLanguages));
 
-//builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>(client =>
-//{
-//    // Hvis proxyen kører i Docker Compose: "http://presidio_analyzer:5001"
-//    // Hvis du tester lokalt fra din maskine: "http://localhost:5001"
-//    var presidioUrl = builder.Configuration["Presidio:BaseUrl"] ?? "http://127.0.0.1:5001/";
-//    client.BaseAddress = new Uri(presidioUrl);
+builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>(client =>
+{
+    // Hvis proxyen kører i Docker Compose: "http://presidio_analyzer:5001"
+    // Hvis du tester lokalt fra din maskine: "http://localhost:5001"
+    var presidioUrl = builder.Configuration["Presidio:BaseUrl"] ?? "http://127.0.0.1:5001/";
+    client.BaseAddress = new Uri(presidioUrl);
 
-//    client.Timeout = TimeSpan.FromSeconds(3);
-//});
+    client.Timeout = TimeSpan.FromSeconds(3);
+});
 
 // 2. Registrer YARP Reverse Proxy
 builder.Services.AddReverseProxy()

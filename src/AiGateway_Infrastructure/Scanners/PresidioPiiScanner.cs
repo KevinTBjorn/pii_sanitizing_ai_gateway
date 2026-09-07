@@ -1,13 +1,26 @@
 ﻿using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
 using AiGateway_Infrastructure.Telemetry;
+using Lingua;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Lingua;
+using System.Text.Json.Serialization;
 
 namespace AiGateway_Infrastructure.Scanners
 {
+    public class PresidioEntity
+    {
+        [JsonPropertyName("start")]
+        public int Start { get; set; }
+
+        [JsonPropertyName("end")]
+        public int End { get; set; }
+
+        [JsonPropertyName("entity_type")]
+        public string EntityType { get; set; } = string.Empty;
+    }
+
     public class PresidioPiiScanner : IPiiScanner
     {
         private readonly HttpClient _httpClient;
@@ -32,30 +45,20 @@ namespace AiGateway_Infrastructure.Scanners
 
             var detectedLanguage = _languageDetector.DetectLanguage(prompt);
 
-            // 1. Send request til Presidio Analyzer i Docker
-            var response = await _httpClient.PostAsJsonAsync("analyze", new
+            var requestBody = new
             {
                 text = prompt,
                 language = "en"
-            }, cancellationToken);
+            };
 
+            var response = await _httpClient.PostAsJsonAsync("analyze", requestBody, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            using var doc = JsonDocument.Parse(json);
+            Console.WriteLine(response);
 
-            // 2. Parse fundne enheder
-            var entities = doc.RootElement.EnumerateArray()
-                .Select(e => new
-                {
-                    Start = e.GetProperty("start").GetInt32(),
-                    End = e.GetProperty("end").GetInt32(),
-                    Type = e.GetProperty("entity_type").GetString() ?? "PII"
-                })
-                .OrderByDescending(e => e.Start) // Bagfra for ikke at ødelægge index
-                .ToList();
+            var rawEntities = await response.Content.ReadFromJsonAsync<List<PresidioEntity>>(cancellationToken: cancellationToken);
 
-            if (entities.Count == 0)
+            if (rawEntities == null ||rawEntities.Count == 0)
             {
                 return new PiiScanResult(
                     HasSensitiveData: false,
@@ -64,28 +67,52 @@ namespace AiGateway_Infrastructure.Scanners
                 );
             }
 
-            // 3. Masker teksten i C#
-            var builder = new StringBuilder(prompt);
-            var detectedTypes = new HashSet<string>();
+            var (maskedPrompt, detectedTypes) = MaskPromptWithEntities(prompt, rawEntities);
 
-            foreach (var entity in entities)
-            {
-                var length = entity.End - entity.Start;
-                builder.Remove(entity.Start, length);
-                builder.Insert(entity.Start, $"[{entity.Type}]");
-                detectedTypes.Add(entity.Type);
-
-                // Registrer i Prometheus/OpenTelemetry metrics
-                PiiMetrics.RecordMaskedItem($"presidio_{entity.Type.ToLowerInvariant()}", 1);
-            }
-
-            // 4. Returner dit PiiScanResult
             return new PiiScanResult
             (
                 HasSensitiveData: true,
-                CleanedPrompt: builder.ToString(),
-                DetectedTypes: detectedTypes.ToList().AsReadOnly()
+                CleanedPrompt: maskedPrompt,
+                DetectedTypes: detectedTypes.AsReadOnly()
             );
+        }
+
+        private static (string maskedPrompt, List<string> detectedTypes) MaskPromptWithEntities(string prompt, List<PresidioEntity> rawEntities)
+        {
+            var acceptedEntities = new List<PresidioEntity>();
+            var longestFirst = rawEntities.OrderByDescending(e => e.End - e.Start).ToList();
+
+            foreach (var entity in longestFirst)
+            {
+                bool overlaps = acceptedEntities.Any(accepted =>
+                    Math.Max(entity.Start, accepted.Start) < Math.Min(entity.End, accepted.End)
+                );
+
+                if (!overlaps)
+                {
+                    acceptedEntities.Add(entity);
+                }
+            }
+            var replaceOrder = acceptedEntities.OrderByDescending(e => e.Start).ToList();
+
+            var builder = new StringBuilder(prompt);
+            var detectedTypes = new HashSet<string>();
+            Console.WriteLine("before masking: " + builder.ToString());
+            foreach (var entity in replaceOrder)
+            {
+                int length = entity.End - entity.Start;
+                if (entity.Start >= 0 && entity.Start + length <= builder.Length)
+                {
+                    builder.Remove(entity.Start, length);
+                    builder.Insert(entity.Start, $"[{entity.EntityType}]");
+
+                    detectedTypes.Add(entity.EntityType);
+
+                    PiiMetrics.RecordMaskedItem($"presidio_{entity.EntityType.ToLowerInvariant()}", 1);
+                }
+            }
+            Console.WriteLine("after masking: " + builder.ToString());
+            return (builder.ToString(), detectedTypes.ToList());
         }
     }
 }
