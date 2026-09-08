@@ -1,0 +1,9 @@
+FROM mcr.microsoft.com/presidio-analyzer:latest
+
+# Download the spaCy Danish NLP model
+RUN python -m spacy download da_core_news_sm
+
+# Copy the custom NLP configuration into the image
+COPY nlp_configuration.yaml /app/presidio_analyzer/conf/default.yaml
+
+EXPOSE 3000

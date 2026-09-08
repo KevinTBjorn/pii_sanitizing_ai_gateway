@@ -44,11 +44,11 @@ namespace AiGateway_Infrastructure.Scanners
             }
 
             var detectedLanguage = _languageDetector.DetectLanguage(prompt);
-
+            Console.WriteLine("Detected language: " + detectedLanguage);
             var requestBody = new
             {
                 text = prompt,
-                language = "en"
+                language = detectedLanguage
             };
 
             var response = await _httpClient.PostAsJsonAsync("analyze", requestBody, cancellationToken);

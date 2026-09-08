@@ -25,7 +25,9 @@ services:
       - prometheus
     
   presidio-analyzer:
-    image: mcr.microsoft.com/presidio-analyzer:latest
+    build:
+      context: ./infra
+      dockerfile: Dockerfile.presidio
     container_name: presidio_analyzer
     ports:
       - "127.0.0.1:5001:3000"
