@@ -1,4 +1,5 @@
-﻿using AiGateway_Core.Interfaces;
+﻿using AiGateway_Core.Constants;
+using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
 using AiGateway_Infrastructure.Telemetry;
 using Lingua;
@@ -44,19 +45,40 @@ namespace AiGateway_Infrastructure.Scanners
             }
 
             var detectedLanguage = _languageDetector.DetectLanguage(prompt);
-            Console.WriteLine("Detected language: " + detectedLanguage);
+
             var requestBody = new
             {
                 text = prompt,
-                language = detectedLanguage
+                language = detectedLanguage,
+                allow_list = PiiTokens.All
             };
+
+            var existingMaskRanges = new List<(int Start, int End)>();
+
+            foreach (var token in PiiTokens.All)
+            {
+                int index = prompt.IndexOf(token, StringComparison.Ordinal);
+                while (index != -1)
+                {
+                    existingMaskRanges.Add((index, index + token.Length));
+                    index = prompt.IndexOf(token, index + token.Length, StringComparison.Ordinal);
+                }
+            }
 
             var response = await _httpClient.PostAsJsonAsync("analyze", requestBody, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            Console.WriteLine(response);
-
             var rawEntities = await response.Content.ReadFromJsonAsync<List<PresidioEntity>>(cancellationToken: cancellationToken);
+
+            var validEntities = rawEntities.Where(entity =>
+            {
+                // Tjek om Presidios interval (Start -> End) overlapper med et eksisterende masket interval
+                bool overlapsWithMaskedToken = existingMaskRanges.Any(range =>
+                    entity.Start < range.End && entity.End > range.Start
+                );
+
+                return !overlapsWithMaskedToken; // Behold kun entiteter der IKKE overlapper
+            }).ToList();
 
             if (rawEntities == null ||rawEntities.Count == 0)
             {
@@ -67,7 +89,7 @@ namespace AiGateway_Infrastructure.Scanners
                 );
             }
 
-            var (maskedPrompt, detectedTypes) = MaskPromptWithEntities(prompt, rawEntities);
+            var (maskedPrompt, detectedTypes) = MaskPromptWithEntities(prompt, validEntities);
 
             return new PiiScanResult
             (
@@ -81,6 +103,7 @@ namespace AiGateway_Infrastructure.Scanners
         {
             var acceptedEntities = new List<PresidioEntity>();
             var longestFirst = rawEntities.OrderByDescending(e => e.End - e.Start).ToList();
+            Console.WriteLine("Detected entities: " + string.Join(", ", longestFirst.Select(e => $"{e.EntityType} ({e.Start}-{e.End})")));
 
             foreach (var entity in longestFirst)
             {
@@ -103,12 +126,16 @@ namespace AiGateway_Infrastructure.Scanners
                 int length = entity.End - entity.Start;
                 if (entity.Start >= 0 && entity.Start + length <= builder.Length)
                 {
-                    builder.Remove(entity.Start, length);
-                    builder.Insert(entity.Start, $"[{entity.EntityType}]");
+                    var test = prompt.Substring(entity.Start, length);
+                    if (!PiiTokens.All.Contains(test))
+                    {
+                        builder.Remove(entity.Start, length);
+                        builder.Insert(entity.Start, $"[{entity.EntityType}]");
 
-                    detectedTypes.Add(entity.EntityType);
+                        detectedTypes.Add(entity.EntityType);
 
-                    PiiMetrics.RecordMaskedItem($"presidio_{entity.EntityType.ToLowerInvariant()}", 1);
+                        PiiMetrics.RecordMaskedItem($"presidio_{entity.EntityType.ToLowerInvariant()}", 1);
+                    }
                 }
             }
             Console.WriteLine("after masking: " + builder.ToString());

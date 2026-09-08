@@ -16,7 +16,8 @@ var supportedLanguages = builder.Configuration
 
 builder.Services.AddSingleton<ILanguageDetector>(new LinguaLanguageDetector(supportedLanguages));
 
-builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>(client =>
+builder.Services.AddSingleton<RegexPiiScanner>();
+builder.Services.AddHttpClient<PresidioPiiScanner>(client =>
 {
     // Hvis proxyen kører i Docker Compose: "http://presidio_analyzer:5001"
     // Hvis du tester lokalt fra din maskine: "http://localhost:5001"
@@ -25,6 +26,13 @@ builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>(client =>
 
     client.Timeout = TimeSpan.FromSeconds(3);
 });
+
+// Registrer Composite Scanneren som IPiiScanner til Gatewayen
+builder.Services.AddSingleton<IPiiScanner>(sp => new ConditionalPiiScanner(new IPiiScanner[]
+{
+    sp.GetRequiredService<RegexPiiScanner>(),     // Kører først (Hurtig & deterministisk)
+    sp.GetRequiredService<PresidioPiiScanner>()   // Kører bagefter (NLP for navne/steder)
+}));
 
 // 2. Registrer YARP Reverse Proxy
 builder.Services.AddReverseProxy()
