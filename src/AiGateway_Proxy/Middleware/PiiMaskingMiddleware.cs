@@ -33,7 +33,7 @@ namespace AiGateway_Proxy.Middleware
 
                 if (!string.IsNullOrWhiteSpace(originalBody))
                 {
-                    var scanResult = await piiScanner.ScanAndMaskAsync(originalBody, context.RequestAborted);
+                    var scanResult = await piiScanner.ScanAndMaskAsync(originalBody);
 
                     var maskedBody = scanResult.CleanedPrompt;
 

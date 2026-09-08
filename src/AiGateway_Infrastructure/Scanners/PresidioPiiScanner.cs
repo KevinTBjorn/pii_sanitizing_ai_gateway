@@ -44,31 +44,9 @@ namespace AiGateway_Infrastructure.Scanners
                 );
             }
 
-            var detectedLanguage = _languageDetector.DetectLanguage(prompt);
+            var existingMaskRanges = FindExistingMaskRanges(prompt);
 
-            var requestBody = new
-            {
-                text = prompt,
-                language = detectedLanguage,
-                allow_list = PiiTokens.All
-            };
-
-            var existingMaskRanges = new List<(int Start, int End)>();
-
-            foreach (var token in PiiTokens.All)
-            {
-                int index = prompt.IndexOf(token, StringComparison.Ordinal);
-                while (index != -1)
-                {
-                    existingMaskRanges.Add((index, index + token.Length));
-                    index = prompt.IndexOf(token, index + token.Length, StringComparison.Ordinal);
-                }
-            }
-
-            var response = await _httpClient.PostAsJsonAsync("analyze", requestBody, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var rawEntities = await response.Content.ReadFromJsonAsync<List<PresidioEntity>>(cancellationToken: cancellationToken);
+            var rawEntities = await FetchPresidioEntitiesAsync(prompt, cancellationToken);
 
             var validEntities = rawEntities.Where(entity =>
             {
@@ -140,6 +118,36 @@ namespace AiGateway_Infrastructure.Scanners
             }
             Console.WriteLine("after masking: " + builder.ToString());
             return (builder.ToString(), detectedTypes.ToList());
+        }
+
+        private static List<(int Start, int End)> FindExistingMaskRanges(string text)
+        {
+            var existingMaskRanges = new List<(int Start, int End)>();
+
+            foreach (var token in PiiTokens.All)
+            {
+                int index = text.IndexOf(token, StringComparison.Ordinal);
+                while (index != -1)
+                {
+                    existingMaskRanges.Add((index, index + token.Length));
+                    index = text.IndexOf(token, index + token.Length, StringComparison.Ordinal);
+                }
+            }
+            return existingMaskRanges;
+        }
+
+        private async Task<List<PresidioEntity>> FetchPresidioEntitiesAsync(string prompt, CancellationToken cancellationToken)
+        {
+            var requestBody = new
+            {
+                text = prompt,
+                language = _languageDetector.DetectLanguage(prompt),
+                allow_list = PiiTokens.All
+            };
+            var response = await _httpClient.PostAsJsonAsync("analyze", requestBody, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            var rawEntities = await response.Content.ReadFromJsonAsync<List<PresidioEntity>>(cancellationToken);
+            return rawEntities ?? new List<PresidioEntity>();
         }
     }
 }
