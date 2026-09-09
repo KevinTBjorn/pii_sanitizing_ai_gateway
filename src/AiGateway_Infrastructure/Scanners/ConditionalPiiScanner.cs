@@ -18,9 +18,7 @@ namespace AiGateway_Infrastructure.Scanners
         public async Task<PiiScanResult> ScanAndMaskAsync(string prompt, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
-            {
                 return new PiiScanResult(false, prompt, Array.Empty<string>());
-            }
 
             var currentPrompt = prompt;
             var allDetectedTypes = new HashSet<string>();

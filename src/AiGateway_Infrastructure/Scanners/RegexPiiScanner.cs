@@ -25,13 +25,7 @@ namespace AiGateway_Infrastructure.Services
         public Task<PiiScanResult> ScanAndMaskAsync(string prompt, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
-            {
-                return Task.FromResult(new PiiScanResult(
-                    HasSensitiveData: false,
-                    CleanedPrompt: prompt,
-                    DetectedTypes: Array.Empty<string>()
-                ));
-            }
+                return Task.FromResult(PiiScanResult.NoPiiFound(prompt));
 
             var detectedTypes = new List<string>();
             string currentPrompt = prompt;
@@ -40,13 +34,11 @@ namespace AiGateway_Infrastructure.Services
             currentPrompt = MaskCprs(currentPrompt, detectedTypes);
             currentPrompt = MaskApiKeys(currentPrompt, detectedTypes);
 
-            var result = new PiiScanResult(
+            return Task.FromResult(new PiiScanResult(
                 HasSensitiveData: detectedTypes.Count > 0,
                 CleanedPrompt: currentPrompt,
                 DetectedTypes: detectedTypes.AsReadOnly()
-            );
-
-            return Task.FromResult(result);
+            ));
         }
 
         private static string MaskEmails(string text, List<string> types)

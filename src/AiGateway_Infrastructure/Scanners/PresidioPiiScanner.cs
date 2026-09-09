@@ -36,38 +36,21 @@ namespace AiGateway_Infrastructure.Scanners
         public async Task<PiiScanResult> ScanAndMaskAsync(string prompt, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
-            {
-                return new PiiScanResult(
-                    HasSensitiveData: false,
-                    CleanedPrompt: prompt,
-                    DetectedTypes: Array.Empty<string>()
-                );
-            }
-
-            var existingMaskRanges = FindExistingMaskRanges(prompt);
+                return PiiScanResult.NoPiiFound(prompt);
 
             var rawEntities = await FetchPresidioEntitiesAsync(prompt, cancellationToken);
 
-            var validEntities = rawEntities.Where(entity =>
-            {
-                // Tjek om Presidios interval (Start -> End) overlapper med et eksisterende masket interval
-                bool overlapsWithMaskedToken = existingMaskRanges.Any(range =>
-                    entity.Start < range.End && entity.End > range.Start
-                );
+            if (rawEntities == null || rawEntities.Count == 0)
+                return PiiScanResult.NoPiiFound(prompt);
 
-                return !overlapsWithMaskedToken; // Behold kun entiteter der IKKE overlapper
-            }).ToList();
+            var existingMaskRanges = FindExistingMaskRanges(prompt);
+            var validEntities = FilterExistingMaskOverlaps(rawEntities, existingMaskRanges);
 
-            if (rawEntities == null ||rawEntities.Count == 0)
-            {
-                return new PiiScanResult(
-                    HasSensitiveData: false,
-                    CleanedPrompt: prompt,
-                    DetectedTypes: Array.Empty<string>()
-                );
-            }
+            if (validEntities == null || validEntities.Count == 0)
+                return PiiScanResult.NoPiiFound(prompt);
 
-            var (maskedPrompt, detectedTypes) = MaskPromptWithEntities(prompt, validEntities);
+            var finalEntities = RemovePresidioMaskOverlap(validEntities);
+            var (maskedPrompt, detectedTypes) = ApplyMasking(prompt, finalEntities);
 
             return new PiiScanResult
             (
@@ -75,26 +58,12 @@ namespace AiGateway_Infrastructure.Scanners
                 CleanedPrompt: maskedPrompt,
                 DetectedTypes: detectedTypes.AsReadOnly()
             );
+
         }
 
-        private static (string maskedPrompt, List<string> detectedTypes) MaskPromptWithEntities(string prompt, List<PresidioEntity> rawEntities)
+        private static (string maskedPrompt, List<string> detectedTypes) ApplyMasking(string prompt, List<PresidioEntity> Entities)
         {
-            var acceptedEntities = new List<PresidioEntity>();
-            var longestFirst = rawEntities.OrderByDescending(e => e.End - e.Start).ToList();
-            Console.WriteLine("Detected entities: " + string.Join(", ", longestFirst.Select(e => $"{e.EntityType} ({e.Start}-{e.End})")));
-
-            foreach (var entity in longestFirst)
-            {
-                bool overlaps = acceptedEntities.Any(accepted =>
-                    Math.Max(entity.Start, accepted.Start) < Math.Min(entity.End, accepted.End)
-                );
-
-                if (!overlaps)
-                {
-                    acceptedEntities.Add(entity);
-                }
-            }
-            var replaceOrder = acceptedEntities.OrderByDescending(e => e.Start).ToList();
+            var replaceOrder = Entities.OrderByDescending(e => e.Start).ToList();
 
             var builder = new StringBuilder(prompt);
             var detectedTypes = new HashSet<string>();
@@ -148,6 +117,39 @@ namespace AiGateway_Infrastructure.Scanners
             response.EnsureSuccessStatusCode();
             var rawEntities = await response.Content.ReadFromJsonAsync<List<PresidioEntity>>(cancellationToken);
             return rawEntities ?? new List<PresidioEntity>();
+        }
+
+        private static List<PresidioEntity> FilterExistingMaskOverlaps(List<PresidioEntity> rawEntities, List<(int Start, int End)> existingMaskRanges)
+        {
+            return rawEntities.Where(entity =>
+            {
+                // Tjek om Presidios interval (Start -> End) overlapper med et eksisterende masket interval
+                bool overlapsWithMaskedToken = existingMaskRanges.Any(range =>
+                    entity.Start < range.End && entity.End > range.Start
+                );
+
+                return !overlapsWithMaskedToken; // Behold kun entiteter der IKKE overlapper
+            }).ToList();
+        }
+
+        private static List<PresidioEntity> RemovePresidioMaskOverlap(List<PresidioEntity> Entities)
+        {
+            var acceptedEntities = new List<PresidioEntity>();
+            var longestFirst = Entities.OrderByDescending(e => e.End - e.Start).ToList();
+
+            foreach (var entity in longestFirst)
+            {
+                bool overlaps = acceptedEntities.Any(accepted =>
+                    Math.Max(entity.Start, accepted.Start) < Math.Min(entity.End, accepted.End)
+                );
+
+                if (!overlaps)
+                {
+                    acceptedEntities.Add(entity);
+                }
+            }
+
+            return acceptedEntities;
         }
     }
 }
