@@ -5,7 +5,7 @@ using System.Diagnostics.Metrics;
 
 namespace AiGateway_UnitTests.Infrastructure.Services
 {
-    public class PiiScannerServiceTests
+    public class RegexPiiScannerTests
     {
         private readonly RegexPiiScanner _sut = new();
 
