@@ -1,22 +1,26 @@
-﻿using System.Diagnostics.Metrics;
+﻿using AiGateway_Core.Models;
+using System.Diagnostics.Metrics;
 
 namespace AiGateway_Infrastructure.Telemetry;
 
 public static class PiiMetrics
 {
-    public const string MeterName = "AiGateway.Infrastructure";
-    public const string PiiMaskedCounterName = "aigateway_pii_masked_total";
+    public const string MeterName = "AiGateway.Pii";
+    public const string PiiCounterName = "aigateway_pii_occurrences_total";
 
     private static readonly Meter Meter = new(MeterName, "1.0.0");
 
-    private static readonly Counter<long> PiiMaskedCounter = Meter.CreateCounter<long>(
-        name: PiiMaskedCounterName,
+    private static readonly Counter<long> PiiCounter = Meter.CreateCounter<long>(
+        name: PiiCounterName,
         unit: "{items}",
-        description: "Antal maskerede PII-forekomster opdelt på type"
+        description: "Antal fundne PII-forekomster opdelt på type og handling"
     );
 
-    public static void RecordMaskedItem(string piiType, int count = 1)
+    public static void RecordPii(string piiType, PiiAction action, int count = 1)
     {
-        PiiMaskedCounter.Add(count, new KeyValuePair<string, object?>("pii_type", piiType));
+        PiiCounter.Add(count,
+            new KeyValuePair<string, object?>("pii_type", piiType),
+            new KeyValuePair<string, object?>("action", action)
+        );
     }
 }

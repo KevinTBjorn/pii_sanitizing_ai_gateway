@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace AiGateway_Infrastructure.Services
 {
-    public partial class RegexPiiScanner : IPiiScanner
+    public partial class RegexPiiScanner
     {
         [GeneratedRegex(@"(?<![\p{L}0-9._%+-])[\p{L}0-9._%+-]+@[\p{L}0-9.-]+\.[\p{L}]{2,}(?![\p{L}])", RegexOptions.IgnoreCase)]
         private static partial Regex EmailRegex();
@@ -21,63 +21,5 @@ namespace AiGateway_Infrastructure.Services
         //Generic Prefixed Tokens (e.g., ak_123..., key-abc..., token_xyz...)
         [GeneratedRegex(@"(?:api[_-]?key|access[_-]?token|secret[_-]?key|auth[_-]?token)\s*[:=]\s*[""']?([a-zA-Z0-9_\-\.]{16,})[""']?", RegexOptions.IgnoreCase)]
         private static partial Regex GenericKeyAssignmentRegex();
-
-        public Task<PiiScanResult> ScanAndMaskAsync(string prompt, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(prompt))
-                return Task.FromResult(PiiScanResult.NoPiiFound(prompt));
-
-            var detectedTypes = new List<string>();
-            string currentPrompt = prompt;
-
-            currentPrompt = MaskEmails(currentPrompt, detectedTypes);
-            currentPrompt = MaskCprs(currentPrompt, detectedTypes);
-            currentPrompt = MaskApiKeys(currentPrompt, detectedTypes);
-
-            return Task.FromResult(new PiiScanResult(
-                HasSensitiveData: detectedTypes.Count > 0,
-                CleanedPrompt: currentPrompt,
-                DetectedTypes: detectedTypes.AsReadOnly()
-            ));
-        }
-
-        private static string MaskEmails(string text, List<string> types)
-        {
-            int matchCount = EmailRegex().Matches(text).Count;
-            if (matchCount == 0) return text;
-            types.Add("Email");
-            PiiMetrics.RecordMaskedItem("masked_email", matchCount);
-            return EmailRegex().Replace(text, PiiTokens.Email);
-        }
-
-        private static string MaskCprs(string text, List<string> types)
-        {
-            int matchCount = CprRegex().Matches(text).Count;
-            if (matchCount == 0) return text;
-            types.Add("Danish_CPR");
-            PiiMetrics.RecordMaskedItem("masked_cpr", matchCount);
-            return CprRegex().Replace(text, PiiTokens.Cpr);
-        }
-
-        private static string MaskApiKeys(string text, List<string> types)
-        {
-            int openAiMatchCount = OpenAiKeyRegex().Matches(text).Count;
-            if (openAiMatchCount > 0)
-            {
-                types.Add("OpenAI_API_Key");
-                PiiMetrics.RecordMaskedItem("masked_openai_key", openAiMatchCount);
-                text = OpenAiKeyRegex().Replace(text, PiiTokens.ApiKey);
-            }
-
-            int genericMatchCount = GenericKeyAssignmentRegex().Matches(text).Count;
-            if (genericMatchCount > 0)
-            {
-                types.Add("Generic_Secret");
-                PiiMetrics.RecordMaskedItem("masked_generic_key", genericMatchCount);
-                text = GenericKeyAssignmentRegex().Replace(text, PiiTokens.ApiKey);
-            }
-
-            return text;
-        }
     }
 }

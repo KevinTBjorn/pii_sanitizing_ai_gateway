@@ -7,6 +7,6 @@ namespace AiGateway_Core.Interfaces
 {
     public interface IPiiScanner
     {
-        Task<PiiScanResult> ScanAndMaskAsync(string prompt, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<PiiMatch>> DetectPiiAsync(string prompt, CancellationToken cancellationToken = default);
     }
 }

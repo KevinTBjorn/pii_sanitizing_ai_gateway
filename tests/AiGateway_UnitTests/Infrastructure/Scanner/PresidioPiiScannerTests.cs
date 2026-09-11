@@ -1,153 +1,144 @@
-﻿using AiGateway_Core.Constants;
-using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
-using AiGateway_Infrastructure.Scanners;
-using Lingua;
+﻿using System.Net;
+using System.Net.Http.Json;
 using Moq;
 using Moq.Protected;
-using System.Net;
-using System.Text.Json;
-using Xunit;
+using AiGateway_Core.Interfaces;
+using AiGateway_Infrastructure.Scanners;
 
 namespace AiGateway_UnitTests.Infrastructure.Scanner
 {
     public class PresidioPiiScannerTests
     {
         private readonly Mock<ILanguageDetector> _mockLanguageDetector;
-        private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
-        private readonly HttpClient _httpClient;
-        private readonly PresidioPiiScanner _sut;
 
         public PresidioPiiScannerTests()
         {
             _mockLanguageDetector = new Mock<ILanguageDetector>();
-            _mockLanguageDetector.Setup(x => x.DetectLanguage(It.IsAny<string>())).Returns("da");
+        }
 
-            _mockHttpMessageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData(null)]
+        public async Task DetectPiiAsync_WhenPromptIsWhitespaceOrNull_ReturnsEmptyListWithoutCallingServices(string? inputPrompt)
+        {
+            // Arrange
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri("http://localhost:5001")
+            };
 
-            _httpClient = new HttpClient(_mockHttpMessageHandler.Object)
+            var scanner = new PresidioPiiScanner(httpClient, _mockLanguageDetector.Object);
+
+            // Act
+            var result = await scanner.DetectPiiAsync(inputPrompt!, TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Empty(result);
+
+            // Verificer at hverken sprogdetektor eller HTTP-klient blev kaldt
+            _mockLanguageDetector.Verify(l => l.DetectLanguage(It.IsAny<string>()), Times.Never);
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Never(),
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            );
+        }
+
+        [Fact]
+        public async Task DetectPiiAsync_WhenPiiIsDetected_ReturnsMappedPiiMatchesCorrectly()
+        {
+            // Arrange
+            var prompt = "Mitt CPR er 123456-7890.";
+            var detectedLanguage = "da";
+
+            _mockLanguageDetector
+                .Setup(l => l.DetectLanguage(prompt))
+                .Returns(detectedLanguage);
+
+            // Forbered JSON respons fra Presidio: {"entity_type": "DK_CPR", "start": 12, "end": 23, "score": 0.95}
+            var presidioResponse = new[]
+            {
+            new
+            {
+                entity_type = "DK_CPR",
+                start = 12,
+                end = 23,
+                score = 0.95
+            }
+        };
+
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri!.ToString().EndsWith("analyze")),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = JsonContent.Create(presidioResponse)
+                });
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
             {
                 BaseAddress = new Uri("http://localhost:5001/")
             };
 
-            _sut = new PresidioPiiScanner(_httpClient, _mockLanguageDetector.Object);
+            var scanner = new PresidioPiiScanner(httpClient, _mockLanguageDetector.Object);
+
+            // Act
+            var result = await scanner.DetectPiiAsync(prompt, TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Single(result);
+            var match = result[0];
+
+            Assert.Equal(12, match.Start);
+            Assert.Equal(11, match.Length); // 23 - 12 = 11
+            Assert.Equal("DK_CPR", match.EntityType);
+            Assert.Equal(0.95, match.Score);
+            Assert.Equal("123456-7890", match.RawValue); // Substring udtaget fra prompt
         }
 
-        private void SetupPresidioResponse(List<PresidioEntity> entitiesToReturn)
+        [Fact]
+        public async Task DetectPiiAsync_WhenPresidioReturnsHttpError_ThrowsHttpRequestException()
         {
-            var jsonResponse = JsonSerializer.Serialize(entitiesToReturn);
-            var response = new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(jsonResponse, System.Text.Encoding.UTF8, "application/json")
-            };
+            // Arrange
+            var prompt = "Fejlende request";
 
-            _mockHttpMessageHandler
+            _mockLanguageDetector
+                .Setup(l => l.DetectLanguage(prompt))
+                .Returns("da");
+
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(response);
-        }
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.InternalServerError
+                });
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        public async Task ScanAndMaskAsync_EmptyPrompt_ReturnsOriginalPrompt(string? input)
-        {
-            // Act
-            var result = await _sut.ScanAndMaskAsync(input!, TestContext.Current.CancellationToken);
-
-            // Assert
-            Assert.False(result.HasSensitiveData);
-            Assert.Equal(input, result.CleanedPrompt);
-
-            _mockHttpMessageHandler.Protected().Verify("SendAsync", Times.Never(), ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>());
-        }
-
-        [Fact]
-        public async Task ScanAndMaskAsync_NoEntitiesFound_ReturnsOriginalPrompt()
-        {
-            // Arrange
-            var input = "Dette er en helt almindelig tekst.";
-            SetupPresidioResponse(new List<PresidioEntity>());
-
-            // Act
-            var result = await _sut.ScanAndMaskAsync(input, TestContext.Current.CancellationToken);
-
-            // Assert
-            Assert.False(result.HasSensitiveData);
-            Assert.Equal(input, result.CleanedPrompt);
-        }
-
-        [Fact]
-        public async Task ScanAndMaskAsync_ValidEntitiesFound_MasksPromptCorrectly()
-        {
-            // Arrange
-            var input = "Mit navn er Sofie Hansen.";
-            
-            SetupPresidioResponse(new List<PresidioEntity>
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
             {
-                new PresidioEntity { Start = 12, End = 24, EntityType = "PERSON" }
-            });
+                BaseAddress = new Uri("http://localhost:5001/")
+            };
 
-            // Act
-            var result = await _sut.ScanAndMaskAsync(input, TestContext.Current.CancellationToken);
+            var scanner = new PresidioPiiScanner(httpClient, _mockLanguageDetector.Object);
 
-            // Assert
-            Assert.True(result.HasSensitiveData);
-            Assert.Equal("Mit navn er [PERSON].", result.CleanedPrompt);
-            Assert.Contains("PERSON", result.DetectedTypes);
-        }
-
-        [Fact]
-        public async Task ScanAndMaskAsync_OverlappingPresidioEntities_LongestEntityWins()
-        {
-            // Arrange
-            var input = "Jeg bor i København Kommune.";
-
-            SetupPresidioResponse(new List<PresidioEntity>
-            {
-                new PresidioEntity { Start = 10, End = 19, EntityType = "CITY" },
-                new PresidioEntity { Start = 10, End = 27, EntityType = "LOCATION" }
-            });
-
-            // Act
-            var result = await _sut.ScanAndMaskAsync(input, TestContext.Current.CancellationToken);
-
-            // Assert
-            Assert.True(result.HasSensitiveData);
-            // Forventer at den fjerner hele "København Kommune" fordi det er det længste interval
-            Assert.Equal("Jeg bor i [LOCATION].", result.CleanedPrompt);
-            Assert.Contains("LOCATION", result.DetectedTypes);
-            Assert.DoesNotContain("CITY", result.DetectedTypes);
-        }
-
-        [Fact]
-        public async Task ScanAndMaskAsync_PresidioOverlapsWithExistingMask_IgnoresPresidioEntity()
-        {
-            // Arrange
-            var input = "Mit cpr er " + PiiTokens.Cpr + " og mit navn er Bo.";
-
-            SetupPresidioResponse(new List<PresidioEntity>
-            {
-                // Presidio tror fejlagtigt, at en del af MASKED_CPR er en entitet
-                new PresidioEntity { Start = 12, End = 18, EntityType = "LOCATION" }, 
-                
-                // Presidio fanger "Bo" korrekt
-                new PresidioEntity { Start = 39, End = 41, EntityType = "PERSON" }
-            });
-
-            // Act
-            var result = await _sut.ScanAndMaskAsync(input, TestContext.Current.CancellationToken);
-
-            // Assert
-            Assert.True(result.HasSensitiveData);
-            // [MASKED_CPR] forbliver uberørt, men "Bo" bliver til [PERSON]
-            Assert.Equal("Mit cpr er " + PiiTokens.Cpr + " og mit navn er [PERSON].", result.CleanedPrompt);
+            // Act & Assert
+            await Assert.ThrowsAsync<HttpRequestException>(() => scanner.DetectPiiAsync(prompt, TestContext.Current.CancellationToken));
         }
     }
 }
