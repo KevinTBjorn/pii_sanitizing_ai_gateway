@@ -1,8 +1,10 @@
 ﻿using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
+using AiGateway_Infrastructure.Telemetry;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AiGateway_Infrastructure.Transformers
 {
@@ -16,6 +18,11 @@ namespace AiGateway_Infrastructure.Transformers
                     CleanedPrompt: prompt,
                     HasPii: false
                 ));
+            }
+
+            foreach (var match in matches)
+            {
+                PiiMetrics.RecordPii(match.EntityType, PiiAction.Masked);
             }
 
             var builder = new StringBuilder(prompt);

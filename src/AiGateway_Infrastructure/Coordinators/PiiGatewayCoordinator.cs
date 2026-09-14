@@ -22,16 +22,16 @@ namespace AiGateway_Infrastructure.Coordinators
         {
             if (string.IsNullOrWhiteSpace(prompt))
                 return new PiiCheckResult(prompt, false);
+            Console.WriteLine($"[PiiGatewayCoordinator] Processing prompt: {prompt}");
 
             var Matches = await _scanner.DetectPiiAsync(prompt, cancellationToken);
+            foreach (var match in Matches)
+            {
+                Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match: {match}");
+            }
 
             if (Matches.Count == 0)
                 return new PiiCheckResult(prompt, false);
-
-            foreach (var match in Matches)
-            {
-                PiiMetrics.RecordPii(match.EntityType, PiiAction.Masked);
-            }
 
             return await _transformer.PiiTransformAsync(prompt, Matches, cancellationToken);
         }

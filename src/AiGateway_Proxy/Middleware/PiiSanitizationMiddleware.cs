@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 
 namespace AiGateway_Proxy.Middleware
 {
@@ -57,13 +59,12 @@ namespace AiGateway_Proxy.Middleware
                     if (scanResult.HasPii)
                     {
                         _logger.LogInformation("PII detekteret og behandlet i request til: {Path}", context.Request.Path);
-                        Console.WriteLine(scanResult.CleanedPrompt);
+                        Console.WriteLine($"Cleaned Prompt: {scanResult.CleanedPrompt}");
 
                         var bytes = Encoding.UTF8.GetBytes(scanResult.CleanedPrompt);
                         context.Request.Body = new MemoryStream(bytes);
                         context.Request.ContentLength = bytes.Length;
                     }
-                    Console.WriteLine($"Cleaned Prompt: {scanResult.CleanedPrompt}");
                 }
             }
 
@@ -117,7 +118,7 @@ namespace AiGateway_Proxy.Middleware
 
             await ProcessNodeAsync(jsonNode);
 
-            return new PiiCheckResult(hasPii ? jsonNode.ToJsonString() : rawBody, hasPii);
+            return new PiiCheckResult(hasPii ? jsonNode.ToJsonString(UnescapedJsonOptions) : rawBody, hasPii);
         }
 
         private static bool ShouldScanRequest(HttpRequest request)
@@ -127,5 +128,10 @@ namespace AiGateway_Proxy.Middleware
 
             return isPostOrPut && isJson;
         }
+
+        private static readonly JsonSerializerOptions UnescapedJsonOptions = new()
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+        };
     }
 }

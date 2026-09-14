@@ -31,11 +31,12 @@ namespace AiGateway_Infrastructure.Scanners
         {
             if (string.IsNullOrWhiteSpace(prompt))
                 return Array.Empty<PiiMatch>();
-
+            var test = _languageDetector.DetectLanguage(prompt);
+            Console.WriteLine($"Detected language: {test}");
             var request = new
             {
                 text = prompt,
-                language = _languageDetector.DetectLanguage(prompt),
+                language = test
             };
 
             var response = await _httpClient.PostAsJsonAsync("analyze", request, cancellationToken);
