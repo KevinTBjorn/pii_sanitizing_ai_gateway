@@ -36,7 +36,7 @@ namespace AiGateway_Infrastructure.Scanners
             var request = new
             {
                 text = prompt,
-                language = test
+                language = "en"
             };
 
             var response = await _httpClient.PostAsJsonAsync("analyze", request, cancellationToken);
@@ -44,104 +44,45 @@ namespace AiGateway_Infrastructure.Scanners
 
             var presidioResults = await response.Content.ReadFromJsonAsync<List<PresidioResponseDto>>(cancellationToken) ?? new();
 
-            return presidioResults.Select(r => new PiiMatch(
+            var rawMatches = presidioResults.Select(r => new PiiMatch(
                     Start: r.Start,
                     Length: r.End - r.Start,
                     EntityType: r.EntityType,
                     Score: r.Score,
                     RawValue: prompt.Substring(r.Start, r.End - r.Start)
                 )).ToList();
+
+            return ResolveOverlaps(rawMatches);
         }
 
-        //private static (string maskedPrompt, List<string> detectedTypes) ApplyMasking(string prompt, List<PresidioEntity> Entities)
-        //{
-        //    var replaceOrder = Entities.OrderByDescending(e => e.Start).ToList();
+        private static List<PiiMatch> ResolveOverlaps(IEnumerable<PiiMatch> matches)
+        {
+            var orderedMatches = matches
+                    .OrderByDescending(m => m.Score == 1.0)
+                    .ThenByDescending(m => m.Length)
+                    .ThenByDescending(m => m.Score)
+                    .ThenBy(m => m.Start)
+                    .ToList();
 
-        //    var builder = new StringBuilder(prompt);
-        //    var detectedTypes = new HashSet<string>();
-        //    Console.WriteLine("before masking: " + builder.ToString());
-        //    foreach (var entity in replaceOrder)
-        //    {
-        //        int length = entity.End - entity.Start;
-        //        if (entity.Start >= 0 && entity.Start + length <= builder.Length)
-        //        {
-        //            var test = prompt.Substring(entity.Start, length);
-        //            if (!PiiTokens.All.Contains(test))
-        //            {
-        //                builder.Remove(entity.Start, length);
-        //                builder.Insert(entity.Start, $"[{entity.EntityType}]");
+            var accepted = new List<PiiMatch>();
 
-        //                detectedTypes.Add(entity.EntityType);
+            foreach (var candidate in orderedMatches)
+            {
+                int candidateEnd = candidate.Start + candidate.Length;
 
-        //                PiiMetrics.RecordPii($"presidio_{entity.EntityType.ToLowerInvariant()}", 1);
-        //            }
-        //        }
-        //    }
-        //    Console.WriteLine("after masking: " + builder.ToString());
-        //    return (builder.ToString(), detectedTypes.ToList());
-        //}
+                bool hasOverlap = accepted.Any(a =>
+                {
+                    int acceptedEnd = a.Start + a.Length;
+                    return candidate.Start < acceptedEnd && candidateEnd > a.Start;
+                });
 
-        //private static List<(int Start, int End)> FindExistingMaskRanges(string text)
-        //{
-        //    var existingMaskRanges = new List<(int Start, int End)>();
+                if (!hasOverlap)
+                {
+                    accepted.Add(candidate);
+                }
+            }
 
-        //    foreach (var token in PiiTokens.All)
-        //    {
-        //        int index = text.IndexOf(token, StringComparison.Ordinal);
-        //        while (index != -1)
-        //        {
-        //            existingMaskRanges.Add((index, index + token.Length));
-        //            index = text.IndexOf(token, index + token.Length, StringComparison.Ordinal);
-        //        }
-        //    }
-        //    return existingMaskRanges;
-        //}
-
-        //private async Task<List<PresidioEntity>> FetchPresidioEntitiesAsync(string prompt, CancellationToken cancellationToken)
-        //{
-        //    var requestBody = new
-        //    {
-        //        text = prompt,
-        //        language = _languageDetector.DetectLanguage(prompt),
-        //        allow_list = PiiTokens.All
-        //    };
-        //    var response = await _httpClient.PostAsJsonAsync("analyze", requestBody, cancellationToken);
-        //    response.EnsureSuccessStatusCode();
-        //    var rawEntities = await response.Content.ReadFromJsonAsync<List<PresidioEntity>>(cancellationToken);
-        //    return rawEntities ?? new List<PresidioEntity>();
-        //}
-
-        //private static List<PresidioEntity> FilterExistingMaskOverlaps(List<PresidioEntity> rawEntities, List<(int Start, int End)> existingMaskRanges)
-        //{
-        //    return rawEntities.Where(entity =>
-        //    {
-        //        // Tjek om Presidios interval (Start -> End) overlapper med et eksisterende masket interval
-        //        bool overlapsWithMaskedToken = existingMaskRanges.Any(range =>
-        //            entity.Start < range.End && entity.End > range.Start
-        //        );
-
-        //        return !overlapsWithMaskedToken; // Behold kun entiteter der IKKE overlapper
-        //    }).ToList();
-        //}
-
-        //private static List<PresidioEntity> RemovePresidioMaskOverlap(List<PresidioEntity> Entities)
-        //{
-        //    var acceptedEntities = new List<PresidioEntity>();
-        //    var longestFirst = Entities.OrderByDescending(e => e.End - e.Start).ToList();
-
-        //    foreach (var entity in longestFirst)
-        //    {
-        //        bool overlaps = acceptedEntities.Any(accepted =>
-        //            Math.Max(entity.Start, accepted.Start) < Math.Min(entity.End, accepted.End)
-        //        );
-
-        //        if (!overlaps)
-        //        {
-        //            acceptedEntities.Add(entity);
-        //        }
-        //    }
-
-        //    return acceptedEntities;
-        //}
+            return accepted.OrderBy(m => m.Start).ToList();
+        }
     }
 }

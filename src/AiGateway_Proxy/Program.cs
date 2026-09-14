@@ -24,8 +24,10 @@ builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>(client =>
     // Hvis proxyen kører i Docker Compose: "http://presidio_analyzer:5001"
     // Hvis du tester lokalt fra din maskine: "http://localhost:5001"
     var presidioUrl = builder.Configuration["Presidio:BaseUrl"] ?? "http://127.0.0.1:5001/";
+    var timeoutSeconds = builder.Configuration.GetValue<int>("Presidio:TimeoutSeconds", 13);
+
     client.BaseAddress = new Uri(presidioUrl);
-    client.Timeout = TimeSpan.FromSeconds(3);
+    client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
 });
 
 builder.Services.AddSingleton<IPiiTransformer, MaskingTransformer>();
