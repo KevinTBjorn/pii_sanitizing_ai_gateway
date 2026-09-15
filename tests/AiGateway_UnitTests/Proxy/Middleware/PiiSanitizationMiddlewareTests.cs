@@ -24,7 +24,7 @@ namespace AiGateway_UnitTests.Proxy.Middleware
             // Opsæt PiiGatewayOptions med scannable keys til testen
             _options = Options.Create(new PiiGatewayOptions
             {
-                ScannableKeys = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase)
+                IgnoredKeys = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase)
             {
                 "message", "content", "prompt"
             }

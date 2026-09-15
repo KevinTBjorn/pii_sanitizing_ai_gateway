@@ -14,16 +14,16 @@ namespace AiGateway_Proxy.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<PiiSanitizationMiddleware> _logger;
-        private readonly HashSet<string> _scannableKeys;
+        private readonly HashSet<string> _ignoredKeys;
 
         public PiiSanitizationMiddleware(RequestDelegate next, ILogger<PiiSanitizationMiddleware> logger, IOptions<PiiGatewayOptions> options)
         {
             _next = next;
             _logger = logger;
-            _scannableKeys = options.Value.ScannableKeys;
+            _ignoredKeys = options.Value.IgnoredKeys;
         }
 
-        public async Task InvokeAsync(HttpContext context, PiiGatewayCoordinator coordinator, IOptions<PiiGatewayOptions> options)
+        public async Task InvokeAsync(HttpContext context, PiiGatewayCoordinator coordinator)
         {
             if (ShouldScanRequest(context.Request))
             {
@@ -44,11 +44,11 @@ namespace AiGateway_Proxy.Middleware
 
                     try
                     {
-                        scanResult = await ProcessBodyContentAsync(originalBody, coordinator, options.Value.ScannableKeys, context.RequestAborted);
+                        scanResult = await ProcessBodyContentAsync(originalBody, coordinator, _ignoredKeys, context.RequestAborted);
                     }
                     catch (JsonException ex)
                     {
-                        _logger.LogWarning(ex, "Ugyldig JSON payload modtaget fra klienten på {Path}", context.Request.Path);
+                        _logger.LogWarning(ex, "Invalid JSON payload received from client on {Path}", context.Request.Path);
 
                         context.Response.StatusCode = StatusCodes.Status400BadRequest;
                         context.Response.ContentType = "text/plain";
@@ -58,8 +58,7 @@ namespace AiGateway_Proxy.Middleware
 
                     if (scanResult.HasPii)
                     {
-                        _logger.LogInformation("PII detekteret og behandlet i request til: {Path}", context.Request.Path);
-                        Console.WriteLine($"Cleaned Prompt: {scanResult.CleanedPrompt}");
+                        _logger.LogInformation("PII detected and sanitized in request to: {Path}", context.Request.Path);
 
                         var bytes = Encoding.UTF8.GetBytes(scanResult.CleanedPrompt);
                         context.Request.Body = new MemoryStream(bytes);
@@ -71,7 +70,7 @@ namespace AiGateway_Proxy.Middleware
             await _next(context);
         }
 
-        private static async Task<PiiCheckResult> ProcessBodyContentAsync(string rawBody, PiiGatewayCoordinator coordinator, IReadOnlySet<string> scannableKeys, CancellationToken cancellationToken)
+        private static async Task<PiiCheckResult> ProcessBodyContentAsync(string rawBody, PiiGatewayCoordinator coordinator, IReadOnlySet<string> ignoredKeys, CancellationToken cancellationToken)
         {
             var jsonNode = JsonNode.Parse(rawBody);
             if (jsonNode == null)
@@ -79,38 +78,45 @@ namespace AiGateway_Proxy.Middleware
 
             bool hasPii = false;
 
-            // Rekursiv funktion der fører forældrenøglen (parentKey) med ned
             async Task ProcessNodeAsync(JsonNode? node, string? parentKey = null)
             {
+                if (node == null) return;
+
+                // 1. Hvis det er en skalar-værdi (f.eks. string)
                 if (node is JsonValue val && val.GetValueKind() == JsonValueKind.String)
                 {
-                    // Tjekker om forældrenøglen (f.eks. "content" eller "prompt") findes i whitelisten
-                    if (parentKey != null && scannableKeys.Contains(parentKey))
+                    // KUN hvis feltnavnet IKKE er i blacklist, scanner vi teksten
+                    if (parentKey != null && ignoredKeys.Contains(parentKey))
                     {
-                        string originalText = val.GetValue<string>();
+                        return; // Eksempel: "model": "gpt-4o" -> Springes over
+                    }
+
+                    string originalText = val.GetValue<string>();
+                    if (!string.IsNullOrWhiteSpace(originalText))
+                    {
                         var result = await coordinator.ProcessPromptAsync(originalText, cancellationToken);
 
                         if (result.HasPii)
                         {
-                            // Erstat direkte i JSON-træet uanset om det ligger i et Objekt eller et Array
                             val.ReplaceWith(JsonValue.Create(result.CleanedPrompt));
                             hasPii = true;
                         }
                     }
                 }
+                // 2. Hvis det er et JSON Objekt -> Traversér ALTID alle felter
                 else if (node is JsonObject obj)
                 {
                     foreach (var property in obj.ToList())
                     {
-                        // Sender feltnavnet (f.eks. "messages" eller "content") med ned som parentKey
+                        // Vi stopper IKKE her, men lader rekursionen gå ned i under-objekter!
                         await ProcessNodeAsync(property.Value, property.Key);
                     }
                 }
+                // 3. Hvis det er et JSON Array -> Traversér ALTID alle elementer
                 else if (node is JsonArray array)
                 {
                     for (int i = 0; i < array.Count; i++)
                     {
-                        // Bevarer parentKey for elementerne i et array
                         await ProcessNodeAsync(array[i], parentKey);
                     }
                 }

@@ -7,6 +7,8 @@ namespace AiGateway_Core.Models
     public class PiiGatewayOptions
     {
         public const string SectionName = "PiiOptions";
-        public HashSet<string> ScannableKeys { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+        public string BaseUrl { get; set; } = "http://127.0.0.1:5001/";
+        public int TimeoutSeconds { get; set; } = 13;
+        public HashSet<string> IgnoredKeys { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     }
 }
