@@ -36,7 +36,7 @@ namespace AiGateway_Infrastructure.Scanners
             var request = new
             {
                 text = prompt,
-                language = "en"
+                language = "da"
             };
 
             var response = await _httpClient.PostAsJsonAsync("analyze", request, cancellationToken);

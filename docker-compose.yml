@@ -32,7 +32,7 @@ services:
     ports:
       - "127.0.0.1:5001:3000"
     volumes:
-      - ./infra/custom_recognizers.yaml:/app/presidio_analyzer/conf/custom_recognizers.yaml:ro
+      - ./infra/custom_app.py:/app/custom_app.py:ro
     restart: unless-stopped
 
   ollama:
