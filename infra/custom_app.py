@@ -12,17 +12,15 @@ app = Flask(__name__)
 def build_custom_analyzer():
     logger.info("Initializing Custom Presidio Analyzer Engine...")
     
-    # 1. Indlæs spaCy NLP Engine
     provider = NlpEngineProvider(conf_file="/app/presidio_analyzer/conf/default.yaml")
     nlp_engine = provider.create_engine()
 
-    # 2. Indlæs indbyggede detektorer
     registry = RecognizerRegistry()
     registry.load_predefined_recognizers(nlp_engine=nlp_engine)
 
     global_recognizer_names = [
         "CreditCardRecognizer", "IbanRecognizer", "IpRecognizer",
-        "CryptoRecognizer", "UrlRecognizer", "EmailRecognizer",
+        "CryptoRecognizer", "UrlRecognizer",
         "MacAddressRecognizer", "PhoneRecognizer", "DateRecognizer"
     ]
 
@@ -37,12 +35,31 @@ def build_custom_analyzer():
     cpr_pattern = Pattern(
         name="cpr_pattern",
         regex=r"(?<!\w)(?:0[1-9]|[12][0-9]|3[01])(?:0[1-9]|1[0-2])[0-9]{2}[- ]?[0-9]{4}(?!\w)",
-        score=0.95
+        score=0.65
     )
+
     email_pattern = Pattern(
         name="email_pattern",
         regex=r"(?i)\b[a-zA-Z0-9æøåÆØÅ._%+-]+@[a-zA-Z0-9æøåÆØÅ.-]+\.[a-zA-ZæøåÆØÅ]{2,}\b",
         score=1.0
+    )
+
+    cvr_pattern = Pattern(
+        name="cvr_pattern",
+        regex=r"(?<!\d)[1-9][0-9]{7}(?!\d)",
+        score=0.4
+    )
+
+    bank_pattern = Pattern(
+        name="dk_bank_pattern",
+        regex=r"(?<!\d)[0-9]{4}[- ]?[0-9]{6,10}(?!\d)",
+        score=0.5
+    )
+
+    generic_key_pattern = Pattern(
+        name="generic_api_key_pattern",
+        regex=r"(?i)(?:api[_-]?key|access[_-]?token|secret[_-]?key|auth[_-]?token)\s*[:=]\s*[\"']?([a-zA-Z0-9_\-\.]{16,})[\"']?",
+        score=1
     )
 
     # 4. Registrer eksplicit for både 'da' og 'en' med unikke navne
@@ -52,7 +69,7 @@ def build_custom_analyzer():
             supported_entity="DK_CPR",
             supported_language=lang,
             patterns=[cpr_pattern],
-            context=["cpr", "cpr-nr", "personnummer"]
+            context=["cpr", "cpr-nr", "personnummer", "cpr nr"]
         ))
         
         registry.add_recognizer(PatternRecognizer(
@@ -62,10 +79,33 @@ def build_custom_analyzer():
             patterns=[email_pattern]
         ))
 
+        registry.add_recognizer(PatternRecognizer(
+            name=f"DkCvrRecognizer_{lang}",
+            supported_entity="DK_CVR",
+            supported_language=lang,
+            patterns=[cvr_pattern],
+            context=["cvr", "cvr-nr", "virksomhedsnummer", "cvr nr"]
+        ))
+
+        registry.add_recognizer(PatternRecognizer(
+            name=f"DkBankAccountRecognizer_{lang}",
+            supported_entity="DK_BANK_ACCOUNT",
+            supported_language=lang,
+            patterns=[bank_pattern],
+            context=["reg", "reg.nr", "kontonr", "konto", "reg.nr.", "kontonummer", "bankkonto", "reg nr"]
+        ))
+
+        registry.add_recognizer(PatternRecognizer(
+            name=f"GenericApiKeyRecognizer_{lang}",
+            supported_entity="API_KEY",
+            supported_language=lang,
+            patterns=[generic_key_pattern],
+            context=["key", "token", "secret", "auth", "bearer", "api"]
+        ))
+
     logger.info("Custom Engine initialized successfully!")
     return AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
 
-# Opret én global analyzer instans
 analyzer = build_custom_analyzer()
 
 @app.route("/health", methods=["GET"])
@@ -75,7 +115,7 @@ def health():
 
 @app.route("/recognizers", methods=["GET"])
 def get_recognizers():
-    language = request.args.get("language", "en")
+    language = request.args.get("language")
     recognizers = analyzer.get_recognizers(language=language)
     return jsonify([r.name for r in recognizers]), 200
 
@@ -83,10 +123,10 @@ def get_recognizers():
 def analyze():
     data = request.get_json() or {}
     results = analyzer.analyze(
-        text=data.get("text", ""),
-        language=data.get("language", "en"),
-        entities=data.get("entities", None),
-        score_threshold=data.get("score_threshold", None),
+        text=data.get("text"),
+        language=data.get("language"),
+        entities=data.get("entities"),
+        score_threshold=data.get("score_threshold"),
         return_decision_process=data.get("return_decision_process", False)
     )
     return jsonify([res.to_dict() for res in results]), 200

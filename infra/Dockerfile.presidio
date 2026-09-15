@@ -1,17 +1,13 @@
 FROM mcr.microsoft.com/presidio-analyzer:latest
 
-# Download modeller
 RUN python -m spacy download da_core_news_md
 RUN python -m spacy download en_core_web_md
 
-# Kopier konfigurationer og Python entrypoint
 COPY nlp_configuration.yaml /app/presidio_analyzer/conf/default.yaml
-COPY custom_recognizers.yaml /app/presidio_analyzer/conf/custom_recognizers.yaml
 COPY custom_app.py /app/custom_app.py
 
 WORKDIR /app
 
 EXPOSE 3000
 
-# Kør vores custom Python applikation
 CMD ["gunicorn", "-b", "0.0.0.0:3000", "custom_app:app"]

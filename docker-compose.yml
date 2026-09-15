@@ -29,6 +29,7 @@ services:
       context: ./infra
       dockerfile: Dockerfile.presidio
     container_name: presidio_analyzer
+    image: presidio-analyzer:latest
     ports:
       - "127.0.0.1:5001:3000"
     volumes:
