@@ -1,5 +1,7 @@
-﻿using AiGateway_Infrastructure.LanguageDetection;
+﻿using AiGateway_Core.Options;
+using AiGateway_Infrastructure.LanguageDetection;
 using Lingua;
+using Microsoft.Extensions.Options;
 
 namespace AiGateway_UnitTests.Infrastructure.LanguageDetection
 {
@@ -9,8 +11,13 @@ namespace AiGateway_UnitTests.Infrastructure.LanguageDetection
 
         public LinguaLanguageDetectorTests()
         {
+            var options = Options.Create(new LanguageDetectionOptions
+            {
+                SupportedLanguages = new List<string> { "da", "en" },
+                DefaultFallback = "en"
+            });
 
-            _sut = new LinguaLanguageDetector();
+            _sut = new LinguaLanguageDetector(options);
         }
 
         [Theory]
