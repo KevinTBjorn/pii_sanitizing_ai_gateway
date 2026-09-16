@@ -44,7 +44,7 @@ namespace AiGateway_Proxy.Middleware
 
                     try
                     {
-                        scanResult = await ProcessBodyContentAsync(originalBody, coordinator, _ignoredKeys, context.RequestAborted);
+                        scanResult = await SanitizeRequestBodyAsync(originalBody, coordinator, _ignoredKeys, context.RequestAborted);
                     }
                     catch (JsonException ex)
                     {
@@ -70,7 +70,7 @@ namespace AiGateway_Proxy.Middleware
             await _next(context);
         }
 
-        private static async Task<PiiCheckResult> ProcessBodyContentAsync(string rawBody, PiiGatewayCoordinator coordinator, IReadOnlySet<string> ignoredKeys, CancellationToken cancellationToken)
+        private static async Task<PiiCheckResult> SanitizeRequestBodyAsync(string rawBody, PiiGatewayCoordinator coordinator, IReadOnlySet<string> ignoredKeys, CancellationToken cancellationToken)
         {
             var jsonNode = JsonNode.Parse(rawBody);
             if (jsonNode == null)
@@ -78,23 +78,21 @@ namespace AiGateway_Proxy.Middleware
 
             bool hasPii = false;
 
-            async Task ProcessNodeAsync(JsonNode? node, string? parentKey = null)
+            async Task InspectNodeAsync(JsonNode? node, string? parentKey = null)
             {
                 if (node == null) return;
-
-                // 1. Hvis det er en skalar-værdi (f.eks. string)
+ 
                 if (node is JsonValue val && val.GetValueKind() == JsonValueKind.String)
                 {
-                    // KUN hvis feltnavnet IKKE er i blacklist, scanner vi teksten
                     if (parentKey != null && ignoredKeys.Contains(parentKey))
                     {
-                        return; // Eksempel: "model": "gpt-4o" -> Springes over
+                        return;
                     }
 
                     string originalText = val.GetValue<string>();
                     if (!string.IsNullOrWhiteSpace(originalText))
                     {
-                        var result = await coordinator.ProcessPromptAsync(originalText, cancellationToken);
+                        var result = await coordinator.SanitizeTextAsync(originalText, cancellationToken);
 
                         if (result.HasPii)
                         {
@@ -103,26 +101,23 @@ namespace AiGateway_Proxy.Middleware
                         }
                     }
                 }
-                // 2. Hvis det er et JSON Objekt -> Traversér ALTID alle felter
                 else if (node is JsonObject obj)
                 {
                     foreach (var property in obj.ToList())
                     {
-                        // Vi stopper IKKE her, men lader rekursionen gå ned i under-objekter!
-                        await ProcessNodeAsync(property.Value, property.Key);
+                        await InspectNodeAsync(property.Value, property.Key);
                     }
                 }
-                // 3. Hvis det er et JSON Array -> Traversér ALTID alle elementer
                 else if (node is JsonArray array)
                 {
                     for (int i = 0; i < array.Count; i++)
                     {
-                        await ProcessNodeAsync(array[i], parentKey);
+                        await InspectNodeAsync(array[i], parentKey);
                     }
                 }
             }
 
-            await ProcessNodeAsync(jsonNode);
+            await InspectNodeAsync(jsonNode);
 
             return new PiiCheckResult(hasPii ? jsonNode.ToJsonString(UnescapedJsonOptions) : rawBody, hasPii);
         }

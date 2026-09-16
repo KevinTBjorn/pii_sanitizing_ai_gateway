@@ -18,17 +18,13 @@ namespace AiGateway_Infrastructure.Coordinators
             _transformer = transformer ?? throw new ArgumentNullException(nameof(transformer));
         }
 
-        public async Task<PiiCheckResult> ProcessPromptAsync(string prompt, CancellationToken cancellationToken = default)
+        public async Task<PiiCheckResult> SanitizeTextAsync(string prompt, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
                 return new PiiCheckResult(prompt, false);
             Console.WriteLine($"[PiiGatewayCoordinator] Processing prompt: {prompt}");
 
             var Matches = await _scanner.DetectPiiAsync(prompt, cancellationToken);
-            foreach (var match in Matches)
-            {
-                Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match: {match}");
-            }
 
             if (Matches.Count == 0)
                 return new PiiCheckResult(prompt, false);

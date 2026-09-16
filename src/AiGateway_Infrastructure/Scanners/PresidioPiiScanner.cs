@@ -7,6 +7,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace AiGateway_Infrastructure.Scanners
 {
@@ -50,6 +51,11 @@ namespace AiGateway_Infrastructure.Scanners
                     Score: r.Score,
                     RawValue: prompt.Substring(r.Start, r.End - r.Start)
                 )).ToList();
+
+            foreach (var match in rawMatches)
+            {
+                Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match: {match}");
+            }
 
             return ResolveOverlaps(rawMatches);
         }
