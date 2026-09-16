@@ -14,8 +14,11 @@ namespace AiGateway_Infrastructure.Coordinators
 
         public PiiGatewayCoordinator(IPiiScanner scanner, IPiiTransformer transformer)
         {
-            _scanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
-            _transformer = transformer ?? throw new ArgumentNullException(nameof(transformer));
+            ArgumentNullException.ThrowIfNull(scanner);
+            ArgumentNullException.ThrowIfNull(transformer);
+
+            _scanner = scanner;
+            _transformer = transformer;
         }
 
         public async Task<PiiCheckResult> SanitizeTextAsync(string prompt, CancellationToken cancellationToken = default)

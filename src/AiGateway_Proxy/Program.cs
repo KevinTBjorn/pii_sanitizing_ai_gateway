@@ -1,5 +1,5 @@
 using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
+using AiGateway_Core.Options;
 using AiGateway_Infrastructure.Coordinators;
 using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.Scanners;
@@ -12,14 +12,20 @@ using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<PiiGatewayOptions>(
-    builder.Configuration.GetSection(PiiGatewayOptions.SectionName));
+builder.Services.AddOptions<PiiGatewayOptions>()
+    .Bind(builder.Configuration.GetSection(PiiGatewayOptions.SectionName))
+    .ValidateDataAnnotations()
+    .Validate(opts => opts.IgnoredKeys != null && opts.IgnoredKeys.Count > 0, "PiiOptions:IgnoredKeys cannot be null or empty.")
+    .ValidateOnStart();
 
-var supportedLanguages = builder.Configuration
-    .GetSection("LanguageDetection:SupportedLanguages")
-    .Get<string[]>() ?? new[] { "da", "en" };
+builder.Services.AddOptions<LanguageDetectionOptions>()
+    .Bind(builder.Configuration.GetSection(LanguageDetectionOptions.SectionName))
+    .ValidateDataAnnotations()
+    .Validate(opts => opts.SupportedLanguages != null && opts.SupportedLanguages.Count > 0,
+        "LanguageDetection:SupportedLanguages cannot be null or empty.")
+    .ValidateOnStart();
 
-builder.Services.AddSingleton<ILanguageDetector>(new LinguaLanguageDetector(supportedLanguages));
+builder.Services.AddSingleton<ILanguageDetector, LinguaLanguageDetector>();
 
 // Resolve options cleanly inside AddHttpClient
 builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>

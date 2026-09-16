@@ -1,5 +1,7 @@
 ﻿using AiGateway_Core.Interfaces;
+using AiGateway_Core.Options;
 using Lingua;
+using Microsoft.Extensions.Options;
 using static Lingua.Language;
 
 namespace AiGateway_Infrastructure.LanguageDetection
@@ -8,20 +10,23 @@ namespace AiGateway_Infrastructure.LanguageDetection
     {
         private readonly LanguageDetector _detector;
         private readonly Dictionary<Language, string> _languageToIsoMap;
+        private readonly string _defaultFallback;
 
-        public LinguaLanguageDetector()
-        : this(new[] { "da", "en" })
+        public LinguaLanguageDetector(IOptions<LanguageDetectionOptions> options)
         {
-        }
-        public LinguaLanguageDetector(IEnumerable<string> supportedIsoCodes)
-        {
-            var isoList = supportedIsoCodes?.ToList() ?? new List<string> { "da", "en" };
+            ArgumentNullException.ThrowIfNull(options);
+            ArgumentNullException.ThrowIfNull(options.Value);
 
-            // 1. Map ISO-strenge ("da", "en", "de") til Lingua Language Enums
-            var linguaLanguages = new List<Language>();
+            var opts = options.Value;
+
+            _defaultFallback = !string.IsNullOrWhiteSpace(opts.DefaultFallback)
+                ? opts.DefaultFallback.ToLowerInvariant()
+                : "en";
+
             _languageToIsoMap = new Dictionary<Language, string>();
+            var linguaLanguages = new List<Language>();
 
-            foreach (var iso in isoList)
+            foreach (var iso in opts.SupportedLanguages)
             {
                 if (TryParseIsoCode(iso, out var language))
                 {
@@ -30,7 +35,12 @@ namespace AiGateway_Infrastructure.LanguageDetection
                 }
             }
 
-            // 2. Byg Lingua detector med de valgte sprog
+            if (linguaLanguages.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "None of the configured SupportedLanguages could be mapped to valid Lingua Language enums.");
+            }
+
             _detector = LanguageDetectorBuilder
                 .FromLanguages(linguaLanguages.ToArray())
                 .WithPreloadedLanguageModels()
@@ -38,31 +48,36 @@ namespace AiGateway_Infrastructure.LanguageDetection
         }
 
         public string DetectLanguage(string text)
-        => DetectLanguage(text, fallback: "en");
+                    => DetectLanguage(text, fallback: _defaultFallback);
 
         public string DetectLanguage(string text, string fallback)
         {
-            if (string.IsNullOrWhiteSpace(text)) return fallback;
+            if (string.IsNullOrWhiteSpace(text))
+                return fallback;
 
             var detectedLanguage = _detector.DetectLanguageOf(text);
 
-            return detectedLanguage switch
-            {
-                Danish => "da",
-                English => "en",
-                _ => fallback
-            };
+            return _languageToIsoMap.TryGetValue(detectedLanguage, out var isoCode)
+                ? isoCode
+                : fallback;
         }
+
         private static bool TryParseIsoCode(string isoCode, out Language language)
         {
-            language = isoCode.ToLowerInvariant() switch
+            if (string.IsNullOrWhiteSpace(isoCode))
+            {
+                language = Unknown;
+                return false;
+            }
+
+            language = isoCode.ToLowerInvariant().Trim() switch
             {
                 "da" => Danish,
                 "en" => English,
                 _ => Unknown
             };
 
-            return language != Language.Unknown;
+            return language != Unknown;
         }
     }
 }

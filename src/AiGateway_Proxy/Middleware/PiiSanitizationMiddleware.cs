@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using AiGateway_Core.Options;
 
 namespace AiGateway_Proxy.Middleware
 {
@@ -18,6 +19,10 @@ namespace AiGateway_Proxy.Middleware
 
         public PiiSanitizationMiddleware(RequestDelegate next, ILogger<PiiSanitizationMiddleware> logger, IOptions<PiiGatewayOptions> options)
         {
+            ArgumentNullException.ThrowIfNull(next);
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(options);
+
             _next = next;
             _logger = logger;
             _ignoredKeys = options.Value.IgnoredKeys;

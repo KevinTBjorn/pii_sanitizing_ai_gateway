@@ -12,6 +12,7 @@ using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
 using AiGateway_Infrastructure.Coordinators;
 using AiGateway_Proxy.Middleware;
+using AiGateway_Core.Options;
 
 namespace AiGateway_UnitTests.Proxy.Middleware
 {
