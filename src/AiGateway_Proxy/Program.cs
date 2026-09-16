@@ -27,7 +27,6 @@ builder.Services.AddOptions<LanguageDetectionOptions>()
 
 builder.Services.AddSingleton<ILanguageDetector, LinguaLanguageDetector>();
 
-// Resolve options cleanly inside AddHttpClient
 builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<PiiGatewayOptions>>().Value;

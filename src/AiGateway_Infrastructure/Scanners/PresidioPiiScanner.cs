@@ -24,6 +24,9 @@ namespace AiGateway_Infrastructure.Scanners
 
         public PresidioPiiScanner(HttpClient httpClient, ILanguageDetector languageDetector)
         {
+            ArgumentNullException.ThrowIfNull(httpClient);
+            ArgumentNullException.ThrowIfNull(languageDetector);
+
             _httpClient = httpClient;
             _languageDetector = languageDetector;
         }

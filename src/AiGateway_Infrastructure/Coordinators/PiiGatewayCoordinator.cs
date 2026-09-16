@@ -29,6 +29,11 @@ namespace AiGateway_Infrastructure.Coordinators
 
             var Matches = await _scanner.DetectPiiAsync(prompt, cancellationToken);
 
+            foreach (var match in Matches)
+            {
+                Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match with no overlap: {match}");
+            }
+
             if (Matches.Count == 0)
                 return new PiiCheckResult(prompt, false);
 
