@@ -55,7 +55,7 @@ namespace AiGateway_UnitTests.Proxy.Middleware
 
             context.Request.Body.Position = 0;
             using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
-            var actualBody = await reader.ReadToEndAsync();
+            var actualBody = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
 
             Assert.Equal(cleanedJson, actualBody);
             Assert.Equal(Encoding.UTF8.GetBytes(cleanedJson).Length, context.Request.ContentLength);
@@ -90,21 +90,22 @@ namespace AiGateway_UnitTests.Proxy.Middleware
 
             context.Request.Body.Position = 0;
             using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
-            var actualBody = await reader.ReadToEndAsync();
+            var actualBody = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
 
             Assert.Equal(originalJson, actualBody);
         }
 
         [Theory]
-        [InlineData("GET", "application/json")]
-        [InlineData("DELETE", "application/json")]
         [InlineData("POST", "text/plain")]
-        [InlineData("PUT", "text/html")]
-        public async Task InvokeAsync_WhenRequestShouldNotBeScanned_ShouldSkipSanitizer(string method, string contentType)
+        [InlineData("POST", "text/html")]
+        [InlineData("PUT", "application/x-www-form-urlencoded")]
+        public async Task InvokeAsync_WhenPostOrPutIsNotJson_ShouldReturn415AndShortCircuit(string method, string contentType)
         {
             // Arrange
-            var body = "{\"key\":\"value\"}";
-            var context = CreateHttpContext(method, contentType, body);
+            var context = new DefaultHttpContext();
+            context.Request.Method = method;
+            context.Request.ContentType = contentType;
+            context.Response.Body = new MemoryStream();
 
             var nextCalled = false;
             RequestDelegate next = (ctx) =>
@@ -119,7 +120,8 @@ namespace AiGateway_UnitTests.Proxy.Middleware
             await middleware.InvokeAsync(context, _sanitizerMock.Object);
 
             // Assert
-            Assert.True(nextCalled);
+            Assert.False(nextCalled, "Pipeline skal stoppes ved 415.");
+            Assert.Equal(StatusCodes.Status415UnsupportedMediaType, context.Response.StatusCode);
             _sanitizerMock.Verify(s => s.SanitizePayloadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
@@ -178,7 +180,7 @@ namespace AiGateway_UnitTests.Proxy.Middleware
 
             context.Response.Body.Position = 0;
             using var reader = new StreamReader(context.Response.Body, Encoding.UTF8);
-            var responseBody = await reader.ReadToEndAsync();
+            var responseBody = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
 
             Assert.Equal("Invalid JSON payload format.", responseBody);
         }

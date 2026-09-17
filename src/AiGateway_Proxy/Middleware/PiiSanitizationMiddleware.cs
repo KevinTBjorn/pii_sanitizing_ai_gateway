@@ -29,8 +29,19 @@ namespace AiGateway_Proxy.Middleware
         {
             ArgumentNullException.ThrowIfNull(payloadSanitizer);
 
-            if (ShouldScanRequest(context.Request))
+            if (HttpMethods.IsPost(context.Request.Method) || HttpMethods.IsPut(context.Request.Method))
             {
+                if (!IsJsonRequest(context.Request.ContentType))
+                {
+                    _logger.LogWarning("Blocked non-JSON {Method} request to {Path} with Content-Type: {ContentType}",
+                        context.Request.Method, context.Request.Path, context.Request.ContentType);
+
+                    context.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
+                    context.Response.ContentType = "text/plain";
+                    await context.Response.WriteAsync("Unsupported Media Type. Only application/json is allowed for POST/PUT requests.", context.RequestAborted);
+                    return;
+                }
+
                 context.Request.EnableBuffering();
 
                 using var reader = new StreamReader(
@@ -74,12 +85,9 @@ namespace AiGateway_Proxy.Middleware
             await _next(context);
         }
 
-        private static bool ShouldScanRequest(HttpRequest request)
+        private static bool IsJsonRequest(string? contentType)
         {
-            var isPostOrPut = request.Method == HttpMethods.Post || request.Method == HttpMethods.Put;
-            var isJson = request.ContentType != null && request.ContentType.Contains("application/json", StringComparison.OrdinalIgnoreCase);
-
-            return isPostOrPut && isJson;
+            return contentType != null && contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
