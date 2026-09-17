@@ -59,6 +59,22 @@ services:
       curl -s http://ollama:11434/api/pull -d '{\"name\": \"smollm:135m\"}';
       echo 'Model ready!';
       "
+# Only runs when '--profile withGateway' is specified
+  aigateway:
+    build:
+      context: .
+      dockerfile: src/AiGateway_Proxy/Dockerfile
+    container_name: aigateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PiiOptions__BaseUrl=http://presidio-analyzer:3000
+      - ReverseProxy__Clusters__ollama-cluster__Destinations__ollama-instance__Address=http://ollama:11434/
+    depends_on:
+      - presidio-analyzer
+      - ollama
+    profiles:
+      - withGateway
 
 volumes:
   ollama_data:
