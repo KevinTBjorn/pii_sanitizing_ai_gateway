@@ -2,8 +2,7 @@ using AiGateway_Core.Interfaces;
 using AiGateway_Core.Options;
 using AiGateway_Infrastructure.Coordinators;
 using AiGateway_Infrastructure.LanguageDetection;
-using AiGateway_Infrastructure.Scanners;
-using AiGateway_Infrastructure.Services;
+using AiGateway_Infrastructure.PiiScanners;
 using AiGateway_Infrastructure.Telemetry;
 using AiGateway_Infrastructure.Transformers;
 using AiGateway_Proxy.Middleware;
@@ -37,7 +36,7 @@ builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>
 
 builder.Services.AddSingleton<IPiiTransformer, MaskingTransformer>();
 
-builder.Services.AddTransient<PiiGatewayCoordinator>();
+builder.Services.AddScoped<IPiiGatewayCoordinator, PiiGatewayCoordinator>();
 
 // Registrer YARP Reverse Proxy
 builder.Services.AddReverseProxy()

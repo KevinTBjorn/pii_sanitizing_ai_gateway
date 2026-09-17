@@ -7,7 +7,7 @@ using System.Text;
 
 namespace AiGateway_Infrastructure.Coordinators
 {
-    public class PiiGatewayCoordinator
+    public class PiiGatewayCoordinator : IPiiGatewayCoordinator
     {
         private readonly IPiiScanner _scanner;
         private readonly IPiiTransformer _transformer;

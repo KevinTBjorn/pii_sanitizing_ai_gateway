@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace AiGateway_Infrastructure.Scanners
+namespace AiGateway_Infrastructure.PiiScanners
 {
     public class PresidioPiiScanner : IPiiScanner
     {

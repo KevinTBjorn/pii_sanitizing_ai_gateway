@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using Moq;
 using Moq.Protected;
 using AiGateway_Core.Interfaces;
-using AiGateway_Infrastructure.Scanners;
+using AiGateway_Infrastructure.PiiScanners;
 
 namespace AiGateway_UnitTests.Infrastructure.Scanner
 {

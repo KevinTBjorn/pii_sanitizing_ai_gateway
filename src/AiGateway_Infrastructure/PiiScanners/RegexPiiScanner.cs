@@ -4,7 +4,7 @@ using AiGateway_Core.Models;
 using AiGateway_Infrastructure.Telemetry;
 using System.Text.RegularExpressions;
 
-namespace AiGateway_Infrastructure.Services
+namespace AiGateway_Infrastructure.PiiScanners
 {
     public partial class RegexPiiScanner
     {
