@@ -20,11 +20,6 @@ namespace AiGateway_Infrastructure.Transformers
                 ));
             }
 
-            foreach (var match in matches)
-            {
-                PiiMetrics.RecordPii(match.EntityType, PiiAction.Masked);
-            }
-
             var builder = new StringBuilder(prompt);
 
             foreach (var match in matches.OrderByDescending(m => m.Start))

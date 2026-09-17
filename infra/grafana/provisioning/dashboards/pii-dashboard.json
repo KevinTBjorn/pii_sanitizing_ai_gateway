@@ -94,13 +94,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(aigateway_pii_masked_total[24h])) or vector(0)",
-          "legendFormat": "Total PII Masked",
+          "expr": "sum(increase(aigateway_pii_occurrences_total[24h])) or vector(0)",
+          "legendFormat": "Total PII Occurrences",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "PII Masked (24h)",
+      "title": "PII Detected (24h)",
       "type": "stat"
     },
     {
@@ -167,13 +167,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(aigateway_pii_masked_total[1h])) or vector(0)",
+          "expr": "sum(increase(aigateway_pii_occurrences_total[1h])) or vector(0)",
           "legendFormat": "PII (Current Window)",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "PII Masked (1h)",
+      "title": "PII Detected (1h)",
       "type": "stat"
     },
     {
@@ -243,7 +243,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(aigateway_pii_masked_total[$__range])) by (pii_type)",
+          "expr": "sum(increase(aigateway_pii_occurrences_total[$__range])) by (pii_type)",
           "legendFormat": "{{pii_type}}",
           "range": true,
           "refId": "A"
@@ -342,13 +342,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(aigateway_pii_masked_total[$__rate_interval])) by (pii_type)",
+          "expr": "sum(rate(aigateway_pii_occurrences_total[$__rate_interval])) by (pii_type)",
           "legendFormat": "{{pii_type}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "PII Masking Rate by Entity Type",
+      "title": "PII Detection Rate by Entity Type",
       "type": "timeseries"
     },
     {
@@ -656,13 +656,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(aigateway_pii_masked_total[$__range])) by (pii_type)",
+          "expr": "sum(increase(aigateway_pii_occurrences_total[$__range])) by (pii_type)",
           "legendFormat": "{{pii_type}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Masked PII Total by Category (Current Window)",
+      "title": "PII Total by Category (Current Window)",
       "type": "bargauge"
     },
     {
@@ -806,6 +806,6 @@
   "timezone": "browser",
   "title": "AI Gateway - PII & Request Telemetry",
   "uid": "aigateway-pii-telemetry",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
