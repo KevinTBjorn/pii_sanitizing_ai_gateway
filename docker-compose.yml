@@ -29,7 +29,6 @@ services:
       context: ./infra
       dockerfile: Dockerfile.presidio
     container_name: presidio_analyzer
-    image: presidio-analyzer:latest
     ports:
       - "127.0.0.1:5001:3000"
     volumes:
@@ -59,6 +58,7 @@ services:
       curl -s http://ollama:11434/api/pull -d '{\"name\": \"smollm:135m\"}';
       echo 'Model ready!';
       "
+
 # Only runs when '--profile withGateway' is specified
   aigateway:
     build:

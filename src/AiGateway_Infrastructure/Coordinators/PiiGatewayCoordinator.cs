@@ -25,7 +25,6 @@ namespace AiGateway_Infrastructure.Coordinators
         {
             if (string.IsNullOrWhiteSpace(prompt))
                 return new PiiCheckResult(prompt, false);
-            Console.WriteLine($"[PiiGatewayCoordinator] Processing prompt: {prompt}");
 
             var Matches = await _scanner.DetectPiiAsync(prompt, cancellationToken);
 
@@ -37,8 +36,11 @@ namespace AiGateway_Infrastructure.Coordinators
                 Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match with no overlap: {match}");
                 PiiMetrics.RecordPii(match.EntityType, PiiAction.Masked);
             }
+            var cleandprompt = await _transformer.PiiTransformAsync(prompt, Matches, cancellationToken);
 
-            return await _transformer.PiiTransformAsync(prompt, Matches, cancellationToken);
+            Console.WriteLine($"[PiiGatewayCoordinator] Cleaned prompt: {cleandprompt.CleanedPrompt}");
+
+            return cleandprompt;
         }
     }
 }
