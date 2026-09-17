@@ -1,5 +1,4 @@
-﻿using AiGateway_Core.Constants;
-using AiGateway_Core.Interfaces;
+﻿using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
 using AiGateway_Infrastructure.Telemetry;
 using Lingua;
@@ -54,11 +53,6 @@ namespace AiGateway_Infrastructure.PiiScanners
                     Score: r.Score,
                     RawValue: prompt.Substring(r.Start, r.End - r.Start)
                 )).ToList();
-
-            foreach (var match in rawMatches)
-            {
-                Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match: {match}");
-            }
 
             return ResolveOverlaps(rawMatches);
         }

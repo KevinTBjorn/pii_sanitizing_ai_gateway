@@ -124,7 +124,7 @@ namespace AiGateway_UnitTests.Infrastructure.PiiScanners
             var results = await scanner.DetectPiiAsync(prompt, TestContext.Current.CancellationToken);
 
             // Assert
-            Assert.Single(results); // Overlapping match should be filtered out
+            Assert.Single(results);
             Assert.Equal(expectedRawValue, results[0].RawValue);
         }
 

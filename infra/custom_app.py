@@ -31,7 +31,6 @@ def build_custom_analyzer():
             rec_da.supported_language = "da"
             registry.add_recognizer(rec_da)
 
-    # 3. Definer custom mønstre
     cpr_pattern = Pattern(
         name="cpr_pattern",
         regex=r"(?<!\w)(?:0[1-9]|[12][0-9]|3[01])(?:0[1-9]|1[0-2])[0-9]{2}[- ]?[0-9]{4}(?!\w)",
@@ -62,7 +61,6 @@ def build_custom_analyzer():
         score=1
     )
 
-    # 4. Registrer eksplicit for både 'da' og 'en' med unikke navne
     for lang in ["da", "en"]:
         registry.add_recognizer(PatternRecognizer(
             name=f"DkCprRecognizer_{lang}",

@@ -41,7 +41,7 @@ namespace AiGateway_UnitTests.Infrastructure.LanguageDetection
         [InlineData("   ")]
         public void DetectLanguage_NullOrWhitespace_ReturnsDefaultFallback(string? input)
         {
-            // Act: Kalder overload uden eksplicit fallback (standard er "en")
+            // Act
             var result = _sut.DetectLanguage(input!);
 
             // Assert
@@ -67,9 +67,6 @@ namespace AiGateway_UnitTests.Infrastructure.LanguageDetection
         [InlineData("Das ist ein deutscher Satz, der nicht in den Modellen enthalten ist.")]
         public void DetectLanguage_UnsupportedLanguage_ReturnsFallback(string input)
         {
-            // Tysk sætning (Lingua er kun konfigureret med Danish og English)
-            //var germanText = "Das ist ein deutscher Satz, der nicht in den Modellen enthalten ist.";
-
             // Act
             var result = _sut.DetectLanguage(input, fallback: "en");
 

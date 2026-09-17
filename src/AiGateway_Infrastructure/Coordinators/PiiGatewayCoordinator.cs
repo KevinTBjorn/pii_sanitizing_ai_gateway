@@ -29,13 +29,14 @@ namespace AiGateway_Infrastructure.Coordinators
 
             var Matches = await _scanner.DetectPiiAsync(prompt, cancellationToken);
 
+            if (Matches.Count == 0)
+                return new PiiCheckResult(prompt, false);
+
             foreach (var match in Matches)
             {
                 Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match with no overlap: {match}");
+                PiiMetrics.RecordPii(match.EntityType, PiiAction.Masked);
             }
-
-            if (Matches.Count == 0)
-                return new PiiCheckResult(prompt, false);
 
             return await _transformer.PiiTransformAsync(prompt, Matches, cancellationToken);
         }

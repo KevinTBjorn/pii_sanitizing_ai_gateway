@@ -40,16 +40,15 @@ builder.Services.AddSingleton<IPiiTransformer, MaskingTransformer>();
 builder.Services.AddScoped<IPiiGatewayCoordinator, PiiGatewayCoordinator>();
 builder.Services.AddScoped<IPiiPayloadSanitizer, JsonPiiPayloadSanitizer>();
 
-// Registrer YARP Reverse Proxy
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
 builder.Services.AddOpenTelemetry()
     .WithMetrics(metrics =>
     {
-        metrics.AddAspNetCoreInstrumentation(); // Indsamler CPU, RAM, HTTP request-tider osv.
+        metrics.AddAspNetCoreInstrumentation();
         metrics.AddMeter(PiiMetrics.MeterName);
-        metrics.AddPrometheusExporter();        // Formaterer metrics til Prometheus
+        metrics.AddPrometheusExporter();
     });
 
 var app = builder.Build();
