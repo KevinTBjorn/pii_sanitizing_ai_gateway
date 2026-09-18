@@ -31,7 +31,7 @@ builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<PiiGatewayOptions>>().Value;
 
-    client.BaseAddress = new Uri(options.BaseUrl);
+    client.BaseAddress = new Uri(options.presidioURL);
     client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
 });
 

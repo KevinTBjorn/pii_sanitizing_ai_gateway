@@ -31,6 +31,7 @@ def build_custom_analyzer():
             rec_da.supported_language = "da"
             registry.add_recognizer(rec_da)
 
+    # Define pattern
     cpr_pattern = Pattern(
         name="cpr_pattern",
         regex=r"(?<!\w)(?:0[1-9]|[12][0-9]|3[01])(?:0[1-9]|1[0-2])[0-9]{2}[- ]?[0-9]{4}(?!\w)",
@@ -62,6 +63,7 @@ def build_custom_analyzer():
     )
 
     for lang in ["da", "en"]:
+        # Adds pattern to multiple language
         registry.add_recognizer(PatternRecognizer(
             name=f"DkCprRecognizer_{lang}",
             supported_entity="DK_CPR",

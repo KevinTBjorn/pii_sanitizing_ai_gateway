@@ -59,7 +59,7 @@ services:
       echo 'Model ready!';
       "
 
-# Only runs when '--profile withGateway' is specified
+# Only runs when '--profile withgateway' is specified
   aigateway:
     build:
       context: .
@@ -74,7 +74,7 @@ services:
       - presidio-analyzer
       - ollama
     profiles:
-      - withGateway
+      - withgateway
 
 volumes:
   ollama_data:
