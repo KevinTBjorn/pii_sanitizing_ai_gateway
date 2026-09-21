@@ -4,10 +4,10 @@ RUN python -m spacy download da_core_news_md
 RUN python -m spacy download en_core_web_md
 
 COPY nlp_configuration.yaml /app/presidio_analyzer/conf/default.yaml
-COPY custom_app.py /app/custom_app.py
+COPY extended_analyzer.py /app/extended_analyzer.py
 
 WORKDIR /app
 
 EXPOSE 3000
 
-CMD ["gunicorn", "-b", "0.0.0.0:3000", "custom_app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:3000", "extended_analyzer:app"]

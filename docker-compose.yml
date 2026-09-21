@@ -32,7 +32,7 @@ services:
     ports:
       - "127.0.0.1:5001:3000"
     volumes:
-      - ./infra/custom_app.py:/app/custom_app.py:ro
+      - ./infra/extended_analyzer.py:/app/extended_analyzer.py:ro
     restart: unless-stopped
 
   ollama:
