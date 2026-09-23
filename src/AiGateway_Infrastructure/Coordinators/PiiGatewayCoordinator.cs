@@ -1,6 +1,7 @@
 ﻿using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
 using AiGateway_Infrastructure.Telemetry;
+using AiGateway_Infrastructure.TextExtraction;
 using System;
 using System.Collections.Generic;
 using System.Text;

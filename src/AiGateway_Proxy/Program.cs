@@ -5,6 +5,7 @@ using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.Payloads;
 using AiGateway_Infrastructure.PiiScanners;
 using AiGateway_Infrastructure.Telemetry;
+using AiGateway_Infrastructure.TextExtraction;
 using AiGateway_Infrastructure.Transformers;
 using AiGateway_Proxy.Middleware;
 using Microsoft.Extensions.Options;
@@ -38,6 +39,7 @@ builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>
 builder.Services.AddSingleton<IPiiTransformer, MaskingTransformer>();
 
 builder.Services.AddScoped<IPiiGatewayCoordinator, PiiGatewayCoordinator>();
+
 builder.Services.AddScoped<IPiiPayloadSanitizer, JsonPiiPayloadSanitizer>();
 
 builder.Services.AddReverseProxy()
