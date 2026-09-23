@@ -36,6 +36,7 @@ builder.Services.AddScoped<IPiiGatewayCoordinator, PiiGatewayCoordinator>();
 builder.Services.AddScoped<IPiiPayloadSanitizer, JsonPiiPayloadSanitizer>();
 
 builder.Services.AddTransient<IDocumentTextExtractor, PdfTextExtractor>();
+builder.Services.AddTransient<IDocumentTextExtractor, TxtTextExtractor>();
 
 builder.Services.AddTransient<IDocumentExtractionService, DocumentExtractionService>();
 

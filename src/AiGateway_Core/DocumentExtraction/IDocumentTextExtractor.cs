@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Core.Interfaces
+namespace AiGateway_Core.IDocumentTextExtractor
 {
     public interface IDocumentTextExtractor
     {

@@ -1,4 +1,4 @@
-﻿using AiGateway_Core.Interfaces;
+﻿using AiGateway_Core.IDocumentTextExtractor;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -56,7 +56,7 @@ namespace AiGateway_Infrastructure.TextExtraction
                         }
                     }
                 }
-                return CleanPdfTextForPrompt(textBuilder.ToString());
+                return Regex.Replace(textBuilder.ToString(), @"(\b[a-zA-Z]+)-\s*\r?\n\s*([a-zA-Z]+\b)", "$1$2");
             }
             finally
             {
@@ -80,22 +80,6 @@ namespace AiGateway_Infrastructure.TextExtraction
                     .Select(w => w.Text)));
 
             return string.Join("\n", lines);
-        }
-
-        public static string CleanPdfTextForPrompt(string rawPdfText)
-        {
-            if (string.IsNullOrWhiteSpace(rawPdfText))
-                return string.Empty;
-
-            string text = rawPdfText.Replace("\r\n", "\n").Replace("\r", "\n");
-
-            text = Regex.Replace(text, @"(\b[a-zA-Z]+)- *\n\s*([a-zA-Z]+\b)", "$1$2");
-
-            text = Regex.Replace(text, @" {2,}", " ");
-
-            text = Regex.Replace(text, @"\n{3,}", "\n\n");
-
-            return text.Trim();
         }
     }
 }
