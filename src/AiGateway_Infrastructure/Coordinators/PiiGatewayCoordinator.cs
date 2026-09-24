@@ -34,15 +34,15 @@ namespace AiGateway_Infrastructure.Coordinators
 
             if (Matches.Count == 0)
                 return new PiiCheckResult(prompt, false);
-            test();
+
             foreach (var match in Matches)
             {
-                //Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match with no overlap: {match}");
+                Console.WriteLine($"[PiiGatewayCoordinator] Detected PII match with no overlap: {match}");
                 PiiMetrics.RecordPii(match.EntityType, PiiAction.Masked);
             }
             var cleandprompt = await _transformer.PiiTransformAsync(prompt, Matches, cancellationToken);
 
-            //Console.WriteLine($"[PiiGatewayCoordinator] Cleaned prompt: {cleandprompt.CleanedPrompt}");
+            Console.WriteLine($"[PiiGatewayCoordinator] Cleaned prompt: {cleandprompt.CleanedPrompt}");
 
             return cleandprompt;
         }

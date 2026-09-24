@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace AiGateway_Core.DocumentExtraction
+namespace AiGateway_Core.DocumentTextExtraction
 {
     public static class DocumentTextNormalizer
     {

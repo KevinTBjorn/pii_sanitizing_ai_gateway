@@ -1,15 +1,11 @@
 ﻿using AiGateway_Core.DocumentExtraction;
+using AiGateway_Core.IDocumentTextExtractor;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Core.IDocumentTextExtractor
+namespace AiGateway_Core.DocumentTextExtraction
 {
-    public interface IDocumentExtractionService
-    {
-        Task<string> ExtractTextAsync(Stream fileStream, string extension, CancellationToken cancellationToken = default);
-    }
-
     public class DocumentExtractionService : IDocumentExtractionService
     {
         private readonly IEnumerable<IDocumentTextExtractor> _extractors;
