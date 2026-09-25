@@ -1,13 +1,14 @@
 ﻿using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
-using AiGateway_Infrastructure.Coordinators;
+using AiGateway_Core.Options;
+using AiGateway_Core.Orchestration;
 using Microsoft.Extensions.Options;
+using System.Net.Mime;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Encodings.Web;
 using System.Text.Unicode;
-using AiGateway_Core.Options;
 
 namespace AiGateway_Proxy.Middleware
 {
@@ -91,3 +92,65 @@ namespace AiGateway_Proxy.Middleware
         }
     }
 }
+
+
+//public async Task InvokeAsync(
+//        HttpContext context,
+//        IDocumentPromptCoordinator docCoordinator,
+//        ITextPromptCoordinator textCoordinator)
+//{
+//    // 1. TILLAD GENLÆSNING AF HTTP STRØMMEN (Skal ske først!)
+//    context.Request.EnableBuffering();
+
+//    try
+//    {
+//        byte[] transformedPayload = null;
+
+//        if (context.Request.HasFormContentType)
+//        {
+//            transformedPayload = await docCoordinator.ProcessAsync(context.Request, context.RequestAborted);
+//        }
+//        else if (context.Request.ContentType?.Contains("application/json") == true)
+//        {
+//            transformedPayload = await textCoordinator.ProcessAsync(context.Request, context.RequestAborted);
+//        }
+
+//        if (transformedPayload != null)
+//        {
+//            // Overskriv og nulstil strømmen til YARP
+//            context.Request.Body = new MemoryStream(transformedPayload);
+//            context.Request.ContentLength = transformedPayload.Length;
+//            context.Request.ContentType = MediaTypeNames.Application.Json;
+//        }
+
+//        await _next(context);
+//    }
+//    // 2. CENTRAL FEJLMAPPNING TIL HTTP STATUSKODER
+//    catch (NotSupportedException ex) // Uunderstøttet filtype fra DocumentExtractionService
+//    {
+//        await WriteErrorResponseAsync(context, StatusCodes.Status415UnsupportedMediaType, ex.Message);
+//    }
+//    catch (JsonException ex) // Forkert JSON struktur
+//    {
+//        await WriteErrorResponseAsync(context, StatusCodes.Status400BadRequest, $"Ugyldigt JSON format: {ex.Message}");
+//    }
+//    catch (Exception ex) // Alt andet
+//    {
+//        await WriteErrorResponseAsync(context, StatusCodes.Status500InternalServerError, "En uventet fejl opstod i AI Gateway.");
+//    }
+//}
+
+//private static async Task WriteErrorResponseAsync(HttpContext context, int statusCode, string message)
+//{
+//    context.Response.StatusCode = statusCode;
+//    context.Response.ContentType = MediaTypeNames.Application.Json;
+
+//    var errorJson = JsonSerializer.Serialize(new
+//    {
+//        error = message,
+//        status = statusCode,
+//        timestamp = DateTime.UtcNow
+//    });
+
+//    await context.Response.WriteAsync(errorJson);
+//}

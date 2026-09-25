@@ -4,7 +4,7 @@ using AiGateway_Core.LanguageDetection;
 using AiGateway_Core.Options;
 using AiGateway_Core.PiiScanners;
 using AiGateway_Core.TextMasking;
-using AiGateway_Infrastructure.Coordinators;
+using AiGateway_Core.Orchestration;
 using AiGateway_Infrastructure.DocumentTextExtraction;
 using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.Payloads;
@@ -36,7 +36,7 @@ builder.Services.AddSingleton<ILanguageDetector, LinguaLanguageDetector>();
 builder.Services.AddSingleton<IPiiTransformer, MaskingTransformer>();
 builder.Services.AddSingleton<IFileTypeDetector, MagicByteFileTypeDetector>();
 
-builder.Services.AddScoped<IPiiGatewayCoordinator, PiiGatewayCoordinator>();
+builder.Services.AddScoped<IPiiGatewayOrchestrator, PiiGatewayOrchestrator>();
 builder.Services.AddScoped<IPiiPayloadSanitizer, JsonPiiPayloadSanitizer>();
 
 builder.Services.AddTransient<IDocumentTextExtractor, PdfTextExtractor>();

@@ -1,6 +1,6 @@
-﻿using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
+﻿using AiGateway_Core.Models;
 using AiGateway_Core.Options;
+using AiGateway_Core.Orchestration;
 using AiGateway_Infrastructure.Coordinators;
 using AiGateway_Infrastructure.Payloads;
 using Microsoft.Extensions.Options;
@@ -16,12 +16,12 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
 {
     public class JsonPiiPayloadSanitizerTests
     {
-        private readonly Mock<IPiiGatewayCoordinator> _coordinatorMock;
+        private readonly Mock<IPiiGatewayOrchestrator> _coordinatorMock;
         private readonly HashSet<string> _ignoredKeys;
 
         public JsonPiiPayloadSanitizerTests()
         {
-            _coordinatorMock = new Mock<IPiiGatewayCoordinator>();
+            _coordinatorMock = new Mock<IPiiGatewayOrchestrator>();
             _ignoredKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "apiKey", "model", "ignored_field" };
         }
 

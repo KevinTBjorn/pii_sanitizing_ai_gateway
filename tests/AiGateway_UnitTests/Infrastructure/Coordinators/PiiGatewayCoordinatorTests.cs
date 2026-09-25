@@ -1,7 +1,7 @@
 ﻿using AiGateway_Core.Models;
 using AiGateway_Core.PiiScanners;
 using AiGateway_Core.TextMasking;
-using AiGateway_Infrastructure.Coordinators;
+using AiGateway_Core.Orchestration;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -104,9 +104,9 @@ namespace AiGateway_UnitTests.Infrastructure.Coordinators
 
         #region Helpers
 
-        private PiiGatewayCoordinator CreateCoordinator()
+        private PiiGatewayOrchestrator CreateCoordinator()
         {
-            return new PiiGatewayCoordinator(_scannerMock.Object, _transformerMock.Object);
+            return new PiiGatewayOrchestrator(_scannerMock.Object, _transformerMock.Object, null!);
         }
 
         #endregion

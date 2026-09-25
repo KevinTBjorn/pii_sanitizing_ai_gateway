@@ -1,7 +1,7 @@
 ﻿using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
 using AiGateway_Core.Options;
-using AiGateway_Infrastructure.Coordinators;
+using AiGateway_Core.Orchestration;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace AiGateway_Infrastructure.Payloads
 {
     public class JsonPiiPayloadSanitizer : IPiiPayloadSanitizer
     {
-        private readonly IPiiGatewayCoordinator _coordinator;
+        private readonly IPiiGatewayOrchestrator _coordinator;
         private readonly HashSet<string> _ignoredKeys;
 
         private static readonly JsonSerializerOptions UnescapedJsonOptions = new()
@@ -22,7 +22,7 @@ namespace AiGateway_Infrastructure.Payloads
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        public JsonPiiPayloadSanitizer(IPiiGatewayCoordinator coordinator, IOptions<PiiGatewayOptions> options)
+        public JsonPiiPayloadSanitizer(IPiiGatewayOrchestrator coordinator, IOptions<PiiGatewayOptions> options)
         {
             ArgumentNullException.ThrowIfNull(coordinator);
             ArgumentNullException.ThrowIfNull(options);
