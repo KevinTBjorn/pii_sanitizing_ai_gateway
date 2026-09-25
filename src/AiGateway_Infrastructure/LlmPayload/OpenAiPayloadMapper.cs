@@ -10,7 +10,7 @@ namespace AiGateway_Infrastructure.LlmPayload
     {
         public bool CanHandle(string providerName) => providerName.Equals("OpenAI", StringComparison.OrdinalIgnoreCase);
 
-        public object MapToProviderPayload(IncomingPromptPayload request, string anonymizedPrompt)
+        public object MapToProviderPayload(RequestPromptPayload request, string anonymizedPrompt)
         {
             return new
             {

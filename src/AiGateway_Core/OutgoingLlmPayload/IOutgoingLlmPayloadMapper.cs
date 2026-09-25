@@ -8,6 +8,6 @@ namespace AiGateway_Core.OutgoingLlmPayload
     public interface IOutgoingLlmPayloadMapper
     {
         bool CanHandle(string providerName);
-        object MapToProviderPayload(IncomingPromptPayload request, string anonymizedPromptWithDocs);
+        object MapToProviderPayload(RequestPromptPayload request, string anonymizedPromptWithDocs);
     }
 }

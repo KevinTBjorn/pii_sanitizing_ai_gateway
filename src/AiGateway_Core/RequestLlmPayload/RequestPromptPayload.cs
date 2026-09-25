@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AiGateway_Core.IncomingLlmPayload
 {
-    public record IncomingPromptPayload
+    public record RequestPromptPayload
     {
         public required string Prompt { get; init; }
         public string? Model { get; init; }
