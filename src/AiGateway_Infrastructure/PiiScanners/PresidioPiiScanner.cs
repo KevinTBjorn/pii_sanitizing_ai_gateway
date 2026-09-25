@@ -1,6 +1,5 @@
 ﻿using AiGateway_Core.LanguageDetection;
 using AiGateway_Core.PiiScanners;
-using AiGateway_Infrastructure.Telemetry;
 using Lingua;
 using System.Net.Http.Json;
 using System.Text;

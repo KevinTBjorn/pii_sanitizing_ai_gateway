@@ -9,7 +9,7 @@ using AiGateway_Infrastructure.DocumentTextExtraction;
 using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.Payloads;
 using AiGateway_Infrastructure.PiiScanners;
-using AiGateway_Infrastructure.Telemetry;
+using AiGateway_Core.Telemetry;
 using AiGateway_Infrastructure.Transformers;
 using AiGateway_Proxy.Middleware;
 using Microsoft.Extensions.Options;
