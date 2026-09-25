@@ -1,5 +1,4 @@
 ﻿using AiGateway_Core.DocumentTextExtraction;
-using AiGateway_Core.Models;
 using AiGateway_Core.PiiScanners;
 using AiGateway_Core.Telemetry;
 using AiGateway_Core.TextMasking;
@@ -25,15 +24,15 @@ namespace AiGateway_Core.Orchestration
             _extractionService = extractionService;
         }
 
-        public async Task<PiiCheckResult> SanitizeTextAsync(string prompt, CancellationToken cancellationToken = default)
+        public async Task<PiiCheckResultTemp> OrchestrateSanitizeProcessAsync(string prompt, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
-                return new PiiCheckResult(prompt, false);
+                return new PiiCheckResultTemp(prompt, false);
 
             var Matches = await _scanner.DetectPiiAsync(prompt, cancellationToken);
 
             if (Matches.Count == 0)
-                return new PiiCheckResult(prompt, false);
+                return new PiiCheckResultTemp(prompt, false);
 
             foreach (var match in Matches)
             {

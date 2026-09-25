@@ -1,5 +1,5 @@
 ﻿using AiGateway_Core.IncomingLlmPayload;
-using AiGateway_Core.OutgoingLlmPayload;
+using AiGateway_Core.LlmPayload;
 using System;
 using System.Collections.Generic;
 using System.Text;

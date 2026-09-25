@@ -15,21 +15,18 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
 
         private readonly List<FileTypeRule> _rules;
 
-        /// <summary>
-        /// Simply add or remove rules here to update supported formats across your application.
-        /// </summary>
         private static List<FileTypeRule> GetDefaultRules() => new()
-    {
-        // --- Binary Formats (Direct Magic Bytes) ---
-        new(Extension: "pdf",  MagicBytes: new byte[] { 0x25, 0x50, 0x44, 0x46 }),
+        {
+            // --- Binary Formats (Direct Magic Bytes) ---
+            new(Extension: "pdf",  MagicBytes: new byte[] { 0x25, 0x50, 0x44, 0x46 }),
 
-        // --- Container Formats (Matches Container Signature + Fallback Extension) ---
-        new(Extension: "docx", ContainerType: "zip"),
+            // --- Container Formats (Matches Container Signature + Fallback Extension) ---
+            new(Extension: "docx", ContainerType: "zip"),
 
-        // --- Text Formats (UTF-8 + No Null Bytes) ---
-        new(Extension: "txt",  IsText: true),
-        //new(Extension: "csv",  IsText: true)
-    };
+            // --- Text Formats (UTF-8 + No Null Bytes) ---
+            new(Extension: "txt",  IsText: true),
+            //new(Extension: "csv",  IsText: true)
+        };
 
         public MagicByteFileTypeDetector(IEnumerable<FileTypeRule>? customRules = null)
         {
@@ -61,7 +58,9 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
             // TIER 1: Direct Magic Bytes Match
             foreach (var rule in _rules)
             {
-                if (rule.MagicBytes is { } magicBytes && bytesRead >= magicBytes.Length)
+                var magicBytes = rule.MagicBytes;
+
+                if (magicBytes is not null && bytesRead >= magicBytes.Length)
                 {
                     if (buffer.AsSpan(0, magicBytes.Length).SequenceEqual(magicBytes))
                     {

@@ -1,5 +1,4 @@
 ﻿using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
 using AiGateway_Core.Options;
 using AiGateway_Core.Orchestration;
 using Microsoft.Extensions.Options;
@@ -56,7 +55,7 @@ namespace AiGateway_Proxy.Middleware
 
                 if (!string.IsNullOrWhiteSpace(originalBody))
                 {
-                    PiiCheckResult scanResult;
+                    PiiCheckResultTemp scanResult;
 
                     try
                     {

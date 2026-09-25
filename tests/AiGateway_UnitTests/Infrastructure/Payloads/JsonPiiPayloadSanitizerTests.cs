@@ -1,7 +1,5 @@
-﻿using AiGateway_Core.Models;
+﻿using AiGateway_Core.Orchestration;
 using AiGateway_Core.Options;
-using AiGateway_Core.Orchestration;
-using AiGateway_Infrastructure.Coordinators;
 using AiGateway_Infrastructure.Payloads;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -51,7 +49,7 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             // Assert
             Assert.False(result.HasPii);
             Assert.Equal(invalidBody, result.CleanedPrompt);
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         #endregion
@@ -65,8 +63,8 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             var json = """{"message": "Hello world", "user": {"name": "John"}}""";
 
             _coordinatorMock
-                .Setup(x => x.SanitizeTextAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((string text, CancellationToken _) => new PiiCheckResult(text, false));
+                .Setup(x => x.OrchestrateSanitizeProcessAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((string text, CancellationToken _) => new PiiCheckResultTemp(text, false));
 
             var sanitizer = CreateSanitizer();
 
@@ -76,8 +74,8 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             // Assert
             Assert.False(result.HasPii);
             Assert.Equal(json, result.CleanedPrompt);
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync("Hello world", It.IsAny<CancellationToken>()), Times.Once);
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync("John", It.IsAny<CancellationToken>()), Times.Once);
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync("Hello world", It.IsAny<CancellationToken>()), Times.Once);
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync("John", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -87,8 +85,8 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             var json = """{"request": {"prompt": "My email is test@example.com"}}""";
 
             _coordinatorMock
-                .Setup(x => x.SanitizeTextAsync("My email is test@example.com", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PiiCheckResult("My email is [MASKED_EMAIL]", true));
+                .Setup(x => x.OrchestrateSanitizeProcessAsync("My email is test@example.com", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PiiCheckResultTemp("My email is [MASKED_EMAIL]", true));
 
             var sanitizer = CreateSanitizer();
 
@@ -116,8 +114,8 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             """;
 
             _coordinatorMock
-                .Setup(x => x.SanitizeTextAsync("Contact user@test.com", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PiiCheckResult("Contact [MASKED_EMAIL]", true));
+                .Setup(x => x.OrchestrateSanitizeProcessAsync("Contact user@test.com", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PiiCheckResultTemp("Contact [MASKED_EMAIL]", true));
 
             var sanitizer = CreateSanitizer();
 
@@ -126,8 +124,8 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
 
             // Assert
             Assert.True(result.HasPii);
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync("secret-12345", It.IsAny<CancellationToken>()), Times.Never);
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync("Contact user@test.com", It.IsAny<CancellationToken>()), Times.Once);
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync("secret-12345", It.IsAny<CancellationToken>()), Times.Never);
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync("Contact user@test.com", It.IsAny<CancellationToken>()), Times.Once);
 
             using var doc = JsonDocument.Parse(result.CleanedPrompt);
             Assert.Equal("secret-12345", doc.RootElement.GetProperty("apiKey").GetString());
@@ -146,8 +144,8 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             """;
 
             _coordinatorMock
-                .Setup(x => x.SanitizeTextAsync("Hello", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PiiCheckResult("Hello", false));
+                .Setup(x => x.OrchestrateSanitizeProcessAsync("Hello", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PiiCheckResultTemp("Hello", false));
 
             var sanitizer = CreateSanitizer();
 
@@ -155,8 +153,8 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             var result = await sanitizer.SanitizePayloadAsync(json, TestContext.Current.CancellationToken);
 
             // Assert
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync(It.Is<string>(s => s.Contains("@test.com")), It.IsAny<CancellationToken>()), Times.Never);
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync("Hello", It.IsAny<CancellationToken>()), Times.Once);
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync(It.Is<string>(s => s.Contains("@test.com")), It.IsAny<CancellationToken>()), Times.Never);
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync("Hello", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -173,12 +171,12 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             """;
 
             _coordinatorMock
-                .Setup(x => x.SanitizeTextAsync("Normal text", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PiiCheckResult("Normal text", false));
+                .Setup(x => x.OrchestrateSanitizeProcessAsync("Normal text", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PiiCheckResultTemp("Normal text", false));
 
             _coordinatorMock
-                .Setup(x => x.SanitizeTextAsync("PII: 123-45-678", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PiiCheckResult("PII: [MASKED_SSN]", true));
+                .Setup(x => x.OrchestrateSanitizeProcessAsync("PII: 123-45-678", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PiiCheckResultTemp("PII: [MASKED_SSN]", true));
 
             var sanitizer = CreateSanitizer();
 
@@ -187,7 +185,7 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
 
             // Assert
             Assert.True(result.HasPii);
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
 
             using var doc = JsonDocument.Parse(result.CleanedPrompt);
             var messages = doc.RootElement.GetProperty("messages");
@@ -204,8 +202,8 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             var token = cts.Token;
 
             _coordinatorMock
-                .Setup(x => x.SanitizeTextAsync(It.IsAny<string>(), token))
-                .ReturnsAsync(new PiiCheckResult("Check token", false));
+                .Setup(x => x.OrchestrateSanitizeProcessAsync(It.IsAny<string>(), token))
+                .ReturnsAsync(new PiiCheckResultTemp("Check token", false));
 
             var sanitizer = CreateSanitizer();
 
@@ -213,7 +211,7 @@ namespace AiGateway_UnitTests.Infrastructure.Payloads
             await sanitizer.SanitizePayloadAsync(json, token);
 
             // Assert
-            _coordinatorMock.Verify(x => x.SanitizeTextAsync("Check token", token), Times.Once);
+            _coordinatorMock.Verify(x => x.OrchestrateSanitizeProcessAsync("Check token", token), Times.Once);
         }
 
         #endregion

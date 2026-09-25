@@ -1,5 +1,4 @@
-﻿using AiGateway_Core.Models;
-using AiGateway_Core.PiiScanners;
+﻿using AiGateway_Core.PiiScanners;
 using AiGateway_Core.TextMasking;
 using AiGateway_Core.Orchestration;
 using Moq;
@@ -34,7 +33,7 @@ namespace AiGateway_UnitTests.Infrastructure.Coordinators
             var coordinator = CreateCoordinator();
 
             // Act
-            var result = await coordinator.SanitizeTextAsync(invalidPrompt!, TestContext.Current.CancellationToken);
+            var result = await coordinator.OrchestrateSanitizeProcessAsync(invalidPrompt!, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.False(result.HasPii);
@@ -60,7 +59,7 @@ namespace AiGateway_UnitTests.Infrastructure.Coordinators
             var coordinator = CreateCoordinator();
 
             // Act
-            var result = await coordinator.SanitizeTextAsync(prompt, TestContext.Current.CancellationToken);
+            var result = await coordinator.OrchestrateSanitizeProcessAsync(prompt, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.False(result.HasPii);
@@ -80,7 +79,7 @@ namespace AiGateway_UnitTests.Infrastructure.Coordinators
                 new(14, 16, "EMAIL", 1.0, "user@example.com")
             };
 
-            var expectedResult = new PiiCheckResult("Contact me at [MASKED_EMAIL]", true);
+            var expectedResult = new PiiCheckResultTemp("Contact me at [MASKED_EMAIL]", true);
 
             _scannerMock
                 .Setup(x => x.DetectPiiAsync(prompt, It.IsAny<CancellationToken>()))
@@ -93,7 +92,7 @@ namespace AiGateway_UnitTests.Infrastructure.Coordinators
             var coordinator = CreateCoordinator();
 
             // Act
-            var result = await coordinator.SanitizeTextAsync(prompt, TestContext.Current.CancellationToken);
+            var result = await coordinator.OrchestrateSanitizeProcessAsync(prompt, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.True(result.HasPii);

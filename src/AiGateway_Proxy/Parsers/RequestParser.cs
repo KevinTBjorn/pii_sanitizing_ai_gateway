@@ -19,37 +19,24 @@ namespace AiGateway_Proxy.Parsers
                 string prompt = form["prompt"].ToString();
                 if (string.IsNullOrWhiteSpace(prompt))
                 {
-                    prompt = form["Prompt"].ToString();
-                }
-
-                if (string.IsNullOrWhiteSpace(prompt))
-                {
                     throw new JsonException("The 'prompt' form field is required.");
-                }
-
-                string? model = form.ContainsKey("model") ? form["model"].ToString() : null;
-
-                double temperature = 0.7;
-                if (form.ContainsKey("temperature") && double.TryParse(form["temperature"], out var tempParsed))
-                {
-                    temperature = tempParsed;
                 }
 
                 var gatewayRequest = new RequestPromptPayload
                 {
                     Prompt = prompt,
-                    Model = model,
-                    Temperature = temperature
+                    Model = form["model"].FirstOrDefault()
                 };
 
-                var files = new List<InputFile>();
-                foreach (var file in form.Files)
+                if (double.TryParse(form["temperature"], out var temp))
                 {
-                    if (file.Length > 0)
-                    {
-                        files.Add(new InputFile(file.OpenReadStream(), Path.GetExtension(file.FileName)));
-                    }
+                    gatewayRequest = gatewayRequest with { Temperature = temp };
                 }
+
+                var files = form.Files
+                    .Where(f => f.Length > 0)
+                    .Select(f => new InputFile(f.OpenReadStream(), Path.GetExtension(f.FileName)))
+                    .ToList();
 
                 return new RequestPromptContext
                 {
@@ -58,7 +45,7 @@ namespace AiGateway_Proxy.Parsers
                 };
             }
 
-            // Case B: Pure application/json Request
+
             request.Body.Position = 0;
             var jsonRequest = await JsonSerializer.DeserializeAsync<RequestPromptPayload>(request.Body, JsonOptions, cancellationToken);
 
@@ -67,7 +54,7 @@ namespace AiGateway_Proxy.Parsers
                 throw new JsonException("Invalid JSON payload or missing 'Prompt' property.");
             }
 
-            request.Body.Position = 0; // Reset for downstream logging if needed
+            request.Body.Position = 0;
 
             return new RequestPromptContext
             {

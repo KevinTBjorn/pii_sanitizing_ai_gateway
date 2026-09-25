@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Core.Models
+namespace AiGateway_Core.Orchestration
 {
-    public record PiiCheckResult(
+    public record PiiCheckResultTemp(
         string CleanedPrompt,
         bool HasPii
     );

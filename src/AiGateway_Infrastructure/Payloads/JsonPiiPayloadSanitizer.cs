@@ -1,5 +1,4 @@
 ﻿using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
 using AiGateway_Core.Options;
 using AiGateway_Core.Orchestration;
 using Microsoft.Extensions.Options;
@@ -32,14 +31,14 @@ namespace AiGateway_Infrastructure.Payloads
             _ignoredKeys = options.Value.IgnoredKeys;
         }
 
-        public async Task<PiiCheckResult> SanitizePayloadAsync(string rawBody, CancellationToken cancellationToken = default)
+        public async Task<PiiCheckResultTemp> SanitizePayloadAsync(string rawBody, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(rawBody))
-                return new PiiCheckResult(rawBody, false);
+                return new PiiCheckResultTemp(rawBody, false);
 
             var jsonNode = JsonNode.Parse(rawBody);
             if (jsonNode == null)
-                return new PiiCheckResult(rawBody, false);
+                return new PiiCheckResultTemp(rawBody, false);
 
             bool hasPii = false;
 
@@ -57,7 +56,7 @@ namespace AiGateway_Infrastructure.Payloads
                     string originalText = val.GetValue<string>();
                     if (!string.IsNullOrWhiteSpace(originalText))
                     {
-                        var result = await _coordinator.SanitizeTextAsync(originalText, cancellationToken);
+                        var result = await _coordinator.OrchestrateSanitizeProcessAsync(originalText, cancellationToken);
 
                         if (result.HasPii)
                         {
@@ -84,7 +83,7 @@ namespace AiGateway_Infrastructure.Payloads
 
             await InspectNodeAsync(jsonNode);
 
-            return new PiiCheckResult(hasPii ? jsonNode.ToJsonString(UnescapedJsonOptions) : rawBody, hasPii);
+            return new PiiCheckResultTemp(hasPii ? jsonNode.ToJsonString(UnescapedJsonOptions) : rawBody, hasPii);
         }
     }
 }

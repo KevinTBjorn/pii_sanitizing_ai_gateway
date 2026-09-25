@@ -5,8 +5,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
 using AiGateway_Proxy.Middleware;
+using AiGateway_Core.Orchestration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -34,7 +34,7 @@ namespace AiGateway_UnitTests.Proxy.Middleware
 
             _sanitizerMock
                 .Setup(s => s.SanitizePayloadAsync(originalJson, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PiiCheckResult(cleanedJson, HasPii: true));
+                .ReturnsAsync(new PiiCheckResultTemp(cleanedJson, HasPii: true));
 
             var context = CreateHttpContext("POST", "application/json", originalJson);
 
@@ -69,7 +69,7 @@ namespace AiGateway_UnitTests.Proxy.Middleware
 
             _sanitizerMock
                 .Setup(s => s.SanitizePayloadAsync(originalJson, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PiiCheckResult(originalJson, HasPii: false));
+                .ReturnsAsync(new PiiCheckResultTemp(originalJson, HasPii: false));
 
             var context = CreateHttpContext("POST", "application/json", originalJson);
 
