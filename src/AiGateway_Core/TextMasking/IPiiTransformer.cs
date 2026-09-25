@@ -1,9 +1,10 @@
 ﻿using AiGateway_Core.Models;
+using AiGateway_Core.PiiScanners;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Core.Interfaces
+namespace AiGateway_Core.TextMasking
 {
     public interface IPiiTransformer
     {

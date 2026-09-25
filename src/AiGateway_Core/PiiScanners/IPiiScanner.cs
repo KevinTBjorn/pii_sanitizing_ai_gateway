@@ -1,9 +1,8 @@
-﻿using AiGateway_Core.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Core.Interfaces
+namespace AiGateway_Core.PiiScanners
 {
     public interface IPiiScanner
     {

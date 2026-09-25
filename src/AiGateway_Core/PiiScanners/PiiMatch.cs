@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Core.Models
+namespace AiGateway_Core.PiiScanners
 {
     public record PiiMatch(
         int Start,

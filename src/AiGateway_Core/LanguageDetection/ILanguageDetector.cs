@@ -1,4 +1,4 @@
-﻿namespace AiGateway_Core.Interfaces
+﻿namespace AiGateway_Core.LanguageDetection
 {
     public interface ILanguageDetector
     {

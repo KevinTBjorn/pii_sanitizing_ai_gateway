@@ -1,4 +1,4 @@
-﻿using AiGateway_Core.Interfaces;
+﻿using AiGateway_Core.LanguageDetection;
 using AiGateway_Core.Options;
 using Lingua;
 using Microsoft.Extensions.Options;

@@ -1,6 +1,4 @@
-﻿using AiGateway_Core.DocumentExtraction;
-using AiGateway_Core.IDocumentTextExtractor;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,19 +7,23 @@ namespace AiGateway_Core.DocumentTextExtraction
     public class DocumentExtractionService : IDocumentExtractionService
     {
         private readonly IEnumerable<IDocumentTextExtractor> _extractors;
+        private readonly IFileTypeDetector _fileTypeDetector;
 
-        public DocumentExtractionService(IEnumerable<IDocumentTextExtractor> extractors)
+        public DocumentExtractionService(IEnumerable<IDocumentTextExtractor> extractors, IFileTypeDetector fileTypeDetector)
         {
             _extractors = extractors;
+            _fileTypeDetector = fileTypeDetector;
         }
 
-        public async Task<string> ExtractTextAsync(Stream fileStream, string extension, CancellationToken cancellationToken = default)
+        public async Task<string> ExtractTextAsync(Stream fileStream, string claimedExtension, CancellationToken cancellationToken = default)
         {
-            var extractor = _extractors.FirstOrDefault(e => e.CanHandle(extension));
+            var realExtension = await _fileTypeDetector.DetectTypeAsync(fileStream, claimedExtension, cancellationToken);
+
+            var extractor = _extractors.FirstOrDefault(e => e.CanHandle(realExtension));
 
             if (extractor == null)
             {
-                throw new NotSupportedException($"No extractor found for file extension '{extension}'.");
+                throw new NotSupportedException($"No extractor found for file extension '{realExtension}'.");
             }
 
             string extractedText = await extractor.ExtractTextAsync(fileStream, cancellationToken);

@@ -1,4 +1,4 @@
-﻿using AiGateway_Core.IDocumentTextExtractor;
+﻿using AiGateway_Core.DocumentTextExtraction;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,7 +9,7 @@ using UglyToad.PdfPig.DocumentLayoutAnalysis.PageSegmenter;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 
-namespace AiGateway_Infrastructure.TextExtraction
+namespace AiGateway_Infrastructure.DocumentTextExtraction
 {
     public class PdfTextExtractor : IDocumentTextExtractor
     {

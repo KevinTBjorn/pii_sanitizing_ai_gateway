@@ -1,8 +1,9 @@
-﻿using AiGateway_Core.IDocumentTextExtractor;
+﻿using AiGateway_Core.DocumentTextExtraction;
 using AiGateway_Core.Interfaces;
 using AiGateway_Core.Models;
+using AiGateway_Core.PiiScanners;
+using AiGateway_Core.TextMasking;
 using AiGateway_Infrastructure.Telemetry;
-using AiGateway_Infrastructure.TextExtraction;
 using System;
 using System.Collections.Generic;
 using System.Text;

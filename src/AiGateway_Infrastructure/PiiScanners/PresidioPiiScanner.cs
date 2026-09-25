@@ -1,5 +1,4 @@
-﻿using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
+﻿using AiGateway_Core.LanguageDetection;
 using AiGateway_Core.PiiScanners;
 using AiGateway_Infrastructure.Telemetry;
 using Lingua;

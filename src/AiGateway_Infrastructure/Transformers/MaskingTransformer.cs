@@ -1,5 +1,6 @@
-﻿using AiGateway_Core.Interfaces;
-using AiGateway_Core.Models;
+﻿using AiGateway_Core.Models;
+using AiGateway_Core.PiiScanners;
+using AiGateway_Core.TextMasking;
 using AiGateway_Infrastructure.Telemetry;
 using System;
 using System.Collections.Generic;

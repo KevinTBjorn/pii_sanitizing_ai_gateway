@@ -1,12 +1,15 @@
-using AiGateway_Core.IDocumentTextExtractor;
+using AiGateway_Core.DocumentTextExtraction;
 using AiGateway_Core.Interfaces;
+using AiGateway_Core.LanguageDetection;
 using AiGateway_Core.Options;
+using AiGateway_Core.PiiScanners;
+using AiGateway_Core.TextMasking;
 using AiGateway_Infrastructure.Coordinators;
+using AiGateway_Infrastructure.DocumentTextExtraction;
 using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.Payloads;
 using AiGateway_Infrastructure.PiiScanners;
 using AiGateway_Infrastructure.Telemetry;
-using AiGateway_Infrastructure.TextExtraction;
 using AiGateway_Infrastructure.Transformers;
 using AiGateway_Proxy.Middleware;
 using Microsoft.Extensions.Options;
@@ -31,6 +34,7 @@ builder.Services.AddOptions<LanguageDetectionOptions>()
 
 builder.Services.AddSingleton<ILanguageDetector, LinguaLanguageDetector>();
 builder.Services.AddSingleton<IPiiTransformer, MaskingTransformer>();
+builder.Services.AddSingleton<IFileTypeDetector, MagicByteFileTypeDetector>();
 
 builder.Services.AddScoped<IPiiGatewayCoordinator, PiiGatewayCoordinator>();
 builder.Services.AddScoped<IPiiPayloadSanitizer, JsonPiiPayloadSanitizer>();
