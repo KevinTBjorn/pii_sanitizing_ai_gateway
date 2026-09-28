@@ -45,6 +45,11 @@ namespace AiGateway_Proxy.Parsers
                 };
             }
 
+            string? contentType = request.ContentType;
+            if (string.IsNullOrEmpty(contentType) || !contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new BadHttpRequestException($"Unsupported or missing Content-Type '{contentType ?? "none"}'. Expected 'application/json' or 'multipart/form-data'.", StatusCodes.Status415UnsupportedMediaType);
+            }
 
             request.Body.Position = 0;
             var jsonRequest = await JsonSerializer.DeserializeAsync<RequestPromptPayload>(request.Body, JsonOptions, cancellationToken);
