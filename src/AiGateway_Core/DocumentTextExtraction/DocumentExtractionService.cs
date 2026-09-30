@@ -6,10 +6,10 @@ namespace AiGateway_Core.DocumentTextExtraction
 {
     public class DocumentExtractionService : IDocumentExtractionService
     {
-        private readonly IEnumerable<IDocumentTextExtractor> _extractors;
+        private readonly IEnumerable<IFileFormatHandler> _extractors;
         private readonly IFileTypeDetector _fileTypeDetector;
 
-        public DocumentExtractionService(IEnumerable<IDocumentTextExtractor> extractors, IFileTypeDetector fileTypeDetector)
+        public DocumentExtractionService(IEnumerable<IFileFormatHandler> extractors, IFileTypeDetector fileTypeDetector)
         {
             _extractors = extractors;
             _fileTypeDetector = fileTypeDetector;

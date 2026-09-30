@@ -81,7 +81,7 @@ namespace AiGateway_IntegrationTests
                 .Setup(s => s.DetectPiiAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<PiiMatch>
                 {
-            new PiiMatch(Start: cprStart, Length: cprLength, EntityType: "DK_CPR", Score: 0.99, RawValue: rawCpr)
+            new PiiMatch(Start: cprStart, Length: cprLength, EntityType: "DK_CPR", Score: 0.99, DetectedText: rawCpr)
                 });
 
             // Configure WireMock downstream endpoint

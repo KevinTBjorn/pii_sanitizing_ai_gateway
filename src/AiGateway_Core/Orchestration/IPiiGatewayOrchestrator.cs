@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AiGateway_Core.IncomingLlmPayload;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,6 +7,6 @@ namespace AiGateway_Core.Orchestration
 {
     public interface IPiiGatewayOrchestrator
     {
-        Task<PiiCheckResultTemp> OrchestrateSanitizeProcessAsync(string prompt, CancellationToken cancellationToken = default);
+        Task<PiiGatewayExecutionResult> OrchestrateSanitizeProcessAsync(RequestPromptContext context, CancellationToken cancellationToken = default);
     }
 }

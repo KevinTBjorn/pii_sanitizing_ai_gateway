@@ -9,6 +9,6 @@ namespace AiGateway_Core.PiiScanners
         int Length,
         string EntityType,
         double Score,
-        string RawValue
+        string DetectedText
     );
 }

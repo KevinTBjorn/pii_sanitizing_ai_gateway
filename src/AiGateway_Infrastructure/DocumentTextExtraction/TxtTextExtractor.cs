@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AiGateway_Infrastructure.DocumentTextExtraction
 {
-    public class TxtTextExtractor : IDocumentTextExtractor
+    public class TxtTextExtractor : IFileFormatHandler
     {
         public bool CanHandle(string extension)
         {

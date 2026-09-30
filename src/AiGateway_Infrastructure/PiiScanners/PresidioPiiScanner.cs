@@ -1,4 +1,5 @@
 ﻿using AiGateway_Core.LanguageDetection;
+using AiGateway_Core.Orchestration;
 using AiGateway_Core.PiiScanners;
 using Lingua;
 using System.Net.Http.Json;
@@ -29,41 +30,70 @@ namespace AiGateway_Infrastructure.PiiScanners
             _languageDetector = languageDetector;
         }
 
-        public async Task<IReadOnlyList<PiiMatch>> DetectPiiAsync(string prompt, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<TextEntry>> DetectPiiAsync(IReadOnlyList<TextEntry> entries, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(prompt))
-                return Array.Empty<PiiMatch>();
+            if (entries is null || entries.Count == 0)
+                return Array.Empty<TextEntry>();
+
+            var scanTasks = entries.Select(entry => ScanSingleEntryAsync(entry, cancellationToken));
+
+            TextEntry[] processedEntries = await Task.WhenAll(scanTasks);
+
+            return processedEntries;
+        }
+
+        private async Task<TextEntry> ScanSingleEntryAsync(TextEntry entry, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(entry.Content))
+                return entry;
 
             var request = new
             {
-                text = prompt,
-                language = _languageDetector.DetectLanguage(prompt)
-        };
+                text = entry.Content,
+                language = _languageDetector.DetectLanguage(entry.Content)
+            };
 
             var response = await _httpClient.PostAsJsonAsync("analyze", request, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var presidioResults = await response.Content.ReadFromJsonAsync<List<PresidioResponseDto>>(cancellationToken) ?? new();
+            var presidioResults = await response.Content
+                .ReadFromJsonAsync<List<PresidioResponseDto>>(cancellationToken) ?? new();
 
-            var rawMatches = presidioResults.Select(r => new PiiMatch(
-                    Start: r.Start,
-                    Length: r.End - r.Start,
+            var rawMatches = new List<PiiMatch>();
+
+            foreach (var r in presidioResults)
+            {
+                int start = CodePointToUtf16Offset(entry.Content, r.Start);
+                int end = CodePointToUtf16Offset(entry.Content, r.End);
+                int length = end - start;
+
+                if (start < 0 || start >= entry.Content.Length || length <= 0)
+                {
+                    continue;
+                }
+
+                int safeLength = Math.Min(length, entry.Content.Length - start);
+
+                rawMatches.Add(new PiiMatch(
+                    Start: start,
+                    Length: safeLength,
                     EntityType: r.EntityType,
                     Score: r.Score,
-                    RawValue: prompt.Substring(r.Start, r.End - r.Start)
-                )).ToList();
+                    DetectedText: entry.Content.Substring(start, safeLength)
+                ));
+            }
 
-            return ResolveOverlaps(rawMatches);
+            return entry with { Matches = ResolveOverlaps(rawMatches) };
         }
 
         private static List<PiiMatch> ResolveOverlaps(IEnumerable<PiiMatch> matches)
         {
             var orderedMatches = matches
-                    .OrderByDescending(m => m.Score == 1.0)
-                    .ThenByDescending(m => m.Length)
-                    .ThenByDescending(m => m.Score)
-                    .ThenBy(m => m.Start)
-                    .ToList();
+                .OrderByDescending(m => m.Score == 1.0)
+                .ThenByDescending(m => m.Length)
+                .ThenByDescending(m => m.Score)
+                .ThenBy(m => m.Start)
+                .ToList();
 
             var accepted = new List<PiiMatch>();
 
@@ -84,6 +114,32 @@ namespace AiGateway_Infrastructure.PiiScanners
             }
 
             return accepted.OrderBy(m => m.Start).ToList();
+        }
+
+        private static int CodePointToUtf16Offset(string text, int codePointIndex)
+        {
+            if (string.IsNullOrEmpty(text) || codePointIndex <= 0) return 0;
+
+            int utf16Index = 0;
+            int currentCodePoint = 0;
+
+            while (utf16Index < text.Length && currentCodePoint < codePointIndex)
+            {
+                if (char.IsHighSurrogate(text[utf16Index]) &&
+                    utf16Index + 1 < text.Length &&
+                    char.IsLowSurrogate(text[utf16Index + 1]))
+                {
+                    utf16Index += 2;
+                }
+                else
+                {
+                    utf16Index += 1;
+                }
+
+                currentCodePoint++;
+            }
+
+            return utf16Index;
         }
     }
 }

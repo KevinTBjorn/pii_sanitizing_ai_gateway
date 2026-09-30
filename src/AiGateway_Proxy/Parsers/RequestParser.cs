@@ -1,16 +1,17 @@
 ﻿using AiGateway_Core.IncomingLlmPayload;
+using AiGateway_Infrastructure.RequestLlmPayload;
 using System.Text.Json;
 
 namespace AiGateway_Proxy.Parsers
 {
-    public static class RequestParser
+    public class RequestParser : IRequestParser
     {
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
             PropertyNameCaseInsensitive = true
         };
 
-        public static async Task<RequestPromptContext> ParseAsync(HttpRequest request, CancellationToken cancellationToken)
+        public async Task<RequestPromptContext> ParseAsync(HttpRequest request, CancellationToken cancellationToken)
         {
             if (request.HasFormContentType)
             {

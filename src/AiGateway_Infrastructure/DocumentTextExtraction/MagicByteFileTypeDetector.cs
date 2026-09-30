@@ -10,7 +10,7 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
         // Known container formats (e.g., ZIP containers used by DOCX, XLSX, PPTX)
         private static readonly Dictionary<string, byte[]> ContainerSignatures = new()
         {
-            { "zip", new byte[] { 0x50, 0x4B, 0x03, 0x04 } }
+            { ".zip", new byte[] { 0x50, 0x4B, 0x03, 0x04 } }
         };
 
         private readonly List<FileTypeRule> _rules;
@@ -18,14 +18,14 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
         private static List<FileTypeRule> GetDefaultRules() => new()
         {
             // --- Binary Formats (Direct Magic Bytes) ---
-            new(Extension: "pdf",  MagicBytes: new byte[] { 0x25, 0x50, 0x44, 0x46 }),
+            new(Extension: ".pdf",  MagicBytes: new byte[] { 0x25, 0x50, 0x44, 0x46 }),
 
             // --- Container Formats (Matches Container Signature + Fallback Extension) ---
-            new(Extension: "docx", ContainerType: "zip"),
+            new(Extension: ".docx", ContainerType: ".zip"),
 
             // --- Text Formats (UTF-8 + No Null Bytes) ---
-            new(Extension: "txt",  IsText: true),
-            //new(Extension: "csv",  IsText: true)
+            new(Extension: ".txt",  IsText: true),
+            //new(Extension: ".csv",  IsText: true)
         };
 
         public MagicByteFileTypeDetector(IEnumerable<FileTypeRule>? customRules = null)
@@ -98,9 +98,9 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
                 }
 
                 // Fallback default for text files if extension wasn't explicitly matched
-                if (_rules.Any(r => r.IsText && r.Extension == "txt"))
+                if (_rules.Any(r => r.IsText && r.Extension == ".txt"))
                 {
-                    return "txt";
+                    return ".txt";
                 }
             }
 

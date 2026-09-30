@@ -11,7 +11,7 @@ using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 
 namespace AiGateway_Infrastructure.DocumentTextExtraction
 {
-    public class PdfTextExtractor : IDocumentTextExtractor
+    public class PdfTextExtractor : IFileFormatHandler
     {
         public bool CanHandle(string extension)
         {

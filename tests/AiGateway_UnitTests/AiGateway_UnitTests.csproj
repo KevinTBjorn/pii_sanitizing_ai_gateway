@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="Infrastructure\TextExtraction\" />
+    <Folder Include="Proxy\Middleware\" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 ﻿using AiGateway_Core.Orchestration;
 using AiGateway_Core.PiiScanners;
+using AiGateway_Core.Telemetry;
 using AiGateway_Core.TextMasking;
 using System;
 using System.Collections.Generic;
@@ -10,14 +11,40 @@ namespace AiGateway_Infrastructure.TextMasking
 {
     public class MaskingTransformer : IPiiTransformer
     {
-        public Task<PiiCheckResultTemp> PiiTransformAsync(string prompt, IReadOnlyList<PiiMatch> matches, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<TextEntry>> PiiTransformAsync(IReadOnlyList<TextEntry> entries, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(prompt) || matches == null || matches.Count == 0)
+            var sanitizedEntries = new List<TextEntry>(entries.Count);
+
+            foreach (var entry in entries)
             {
-                return Task.FromResult(new PiiCheckResultTemp(
-                    CleanedPrompt: prompt,
-                    HasPii: false
-                ));
+                if (entry.Matches == null || entry.Matches.Count == 0)
+                {
+                    sanitizedEntries.Add(entry);
+                    continue;
+                }
+
+                foreach (var match in entry.Matches)
+                {
+                    PiiMetrics.RecordPii(match.EntityType, PiiAction.Masked);
+                }
+
+                string sanitizedContent = MaskContent(entry.Content, entry.Matches);
+
+                sanitizedEntries.Add(entry with
+                {
+                    Content = sanitizedContent,
+                    Matches = Array.Empty<PiiMatch>()
+                });
+            }
+
+            return Task.FromResult<IReadOnlyList<TextEntry>>(sanitizedEntries);
+        }
+
+        private static string MaskContent(string prompt, IReadOnlyList<PiiMatch> matches)
+        {
+            if (string.IsNullOrEmpty(prompt) || matches == null || matches.Count == 0)
+            {
+                return prompt;
             }
 
             var builder = new StringBuilder(prompt);
@@ -30,10 +57,7 @@ namespace AiGateway_Infrastructure.TextMasking
                 builder.Insert(match.Start, replacementText);
             }
 
-            return Task.FromResult(new PiiCheckResultTemp(
-                CleanedPrompt: builder.ToString(),
-                HasPii: true
-            ));
+            return builder.ToString();
         }
     }
 }

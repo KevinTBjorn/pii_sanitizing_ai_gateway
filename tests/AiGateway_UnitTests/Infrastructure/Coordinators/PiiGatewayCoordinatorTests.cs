@@ -79,7 +79,7 @@ namespace AiGateway_UnitTests.Infrastructure.Coordinators
                 new(14, 16, "EMAIL", 1.0, "user@example.com")
             };
 
-            var expectedResult = new PiiCheckResultTemp("Contact me at [MASKED_EMAIL]", true);
+            var expectedResult = new GatewayExecutionPlan("Contact me at [MASKED_EMAIL]", true);
 
             _scannerMock
                 .Setup(x => x.DetectPiiAsync(prompt, It.IsAny<CancellationToken>()))
