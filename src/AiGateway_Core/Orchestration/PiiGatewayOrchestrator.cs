@@ -69,25 +69,6 @@ namespace AiGateway_Core.Orchestration
 
             IReadOnlyList<TextEntry> scannedEntries = await _scanner.DetectPiiAsync(entries, cancellationToken);
 
-            foreach (var entry in scannedEntries)
-            {
-                var detectedTypes = entry.Matches.Select(m => m.EntityType).Distinct();
-
-                _logger.LogInformation(
-                    "Scan Complete [{Source}]: Found {MatchCount} PII entities. Types: {Types}",
-                    entry.Source,
-                    entry.Matches.Count,
-                    string.Join(", ", detectedTypes));
-
-                // Granular details (visible when LogLevel is Debug)
-                foreach (var match in entry.Matches)
-                {
-                    _logger.LogDebug(
-                        "  -> PII Match [{Source}]: Type={EntityType}, start={Start}, length={Length}, Score={Score}, text={DetectedText}",
-                        entry.Source, match.EntityType, match.Start, match.Length, match.Score, match.DetectedText);
-                }
-            }
-
             bool containsPii = scannedEntries.Any(e => e.Matches.Count > 0);
             var detectedPiiTypes = scannedEntries
                 .SelectMany(e => e.Matches)
@@ -98,20 +79,11 @@ namespace AiGateway_Core.Orchestration
             IReadOnlyList<TextEntry> sanitizedEntries = scannedEntries;
 
             if (containsPii)
-                sanitizedEntries = await _transformer.PiiTransformAsync(scannedEntries, cancellationToken);
-
-            for (int i = 0; i < scannedEntries.Count; i++)
             {
-                var original = scannedEntries[i];
-                var sanitized = sanitizedEntries[i];
-
-                _logger.LogInformation(
-                    "Transform Complete [{Source}]: Text length changed from {OldLen} to {NewLen} characters.",
-                    original.Source, original.Content.Length, sanitized.Content.Length);
-
-                _logger.LogDebug("ORIGINAL [{Source}]:  {Content}", original.Source, original.Content);
-                _logger.LogDebug("SANITIZED [{Source}]: {Content}", sanitized.Source, sanitized.Content);
+                sanitizedEntries = await _transformer.PiiTransformAsync(scannedEntries, cancellationToken);
             }
+
+            PrintSanitizationShowcase(scannedEntries, sanitizedEntries);
 
             object formattedPayload = _llmPayloadFormatter.FormatPayload("openai", context.PromptRequest, sanitizedEntries);
 
@@ -121,6 +93,55 @@ namespace AiGateway_Core.Orchestration
                 ContainsPii = containsPii,
                 DetectedPiiTypes = detectedPiiTypes,
             };
+        }
+
+        private static void PrintSanitizationShowcase(
+           IReadOnlyList<TextEntry> scannedEntries,
+           IReadOnlyList<TextEntry> sanitizedEntries)
+        {
+            // ANSI Escape Codes (Supported directly by Docker STDOUT & Linux terminals)
+            const string Reset = "\u001b[0m";
+            const string Red = "\u001b[31m";
+            const string Green = "\u001b[32m";
+            const string Yellow = "\u001b[33m";
+            const string Cyan = "\u001b[36m";
+            const string Gray = "\u001b[90m";
+
+            Console.WriteLine($"{Cyan}\n=== PII GATEWAY SHOWCASE ==={Reset}");
+
+            // 1. Scan Results
+            foreach (var entry in scannedEntries)
+            {
+                var detectedTypes = entry.Matches.Select(m => m.EntityType).Distinct();
+                string typesText = detectedTypes.Any() ? string.Join(", ", detectedTypes) : "None";
+                string color = entry.Matches.Count > 0 ? Yellow : Green;
+
+                Console.WriteLine($"{color}[SCAN] {entry.Source} | Matches: {entry.Matches.Count} | Types: {typesText}{Reset}");
+
+                foreach (var match in entry.Matches)
+                {
+                    int endIndex = match.Start + match.Length;
+                    Console.WriteLine($"  └─> {Cyan}[{match.EntityType}]{Reset} Pos: {match.Start}..{endIndex} ({match.Length} chars) | Score: {match.Score:F2} | Text: \"{match.DetectedText}\"");
+                }
+            }
+
+            Console.WriteLine($"{Gray}--------------------------------------------------{Reset}");
+
+            // 2. Transformation Diffs
+            for (int i = 0; i < scannedEntries.Count; i++)
+            {
+                var original = scannedEntries[i];
+                var sanitized = sanitizedEntries[i];
+
+                Console.WriteLine($"[TRANSFORM] {original.Source} | Length: {original.Content.Length} -> {sanitized.Content.Length} chars");
+                Console.WriteLine($"  ├─ {Red}ORIGINAL : {original.Content}{Reset}");
+                Console.WriteLine($"  └─ {Green}SANITIZED: {sanitized.Content}{Reset}");
+            }
+
+            Console.WriteLine($"{Cyan}=========================================\n{Reset}");
+
+            // Ensure output is immediately flushed to Docker logs without stream buffering
+            Console.Out.Flush();
         }
 
         //public async void test()
