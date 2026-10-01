@@ -38,7 +38,14 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
             if (!fileStream.CanRead)
                 throw new ArgumentException("Stream must be readable.", nameof(fileStream));
 
-            var cleanFallback = fallbackExtension.TrimStart('.').ToLowerInvariant();
+            var cleanFallback = string.IsNullOrWhiteSpace(fallbackExtension)
+                        ? string.Empty
+                        : "." + fallbackExtension.TrimStart('.').ToLowerInvariant();
+
+            if (fileStream.CanSeek)
+            {
+                fileStream.Position = 0;
+            }
 
             byte[] buffer = new byte[512];
             long initialPosition = fileStream.CanSeek ? fileStream.Position : 0;

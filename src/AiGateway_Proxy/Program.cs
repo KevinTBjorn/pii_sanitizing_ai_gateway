@@ -59,12 +59,6 @@ builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
-builder.Logging.AddSimpleConsole(options =>
-{
-    options.SingleLine = true;
-    options.TimestampFormat = "HH:mm:ss ";
-});
-
 builder.Services.AddOpenTelemetry()
     .WithMetrics(metrics =>
     {
