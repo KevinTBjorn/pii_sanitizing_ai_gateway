@@ -134,8 +134,8 @@ namespace AiGateway_Core.Orchestration
                 var sanitized = sanitizedEntries[i];
 
                 Console.WriteLine($"[TRANSFORM] {original.Source} | Length: {original.Content.Length} -> {sanitized.Content.Length} chars");
-                Console.WriteLine($"  ├─ {Red}ORIGINAL : {original.Content}{Reset}");
-                Console.WriteLine($"  └─ {Green}SANITIZED: {sanitized.Content}{Reset}");
+                Console.WriteLine($"{Red}ORIGINAL : {original.Content}{Reset}");
+                Console.WriteLine($"{Green}SANITIZED: {sanitized.Content}{Reset}");
             }
 
             Console.WriteLine($"{Cyan}=========================================\n{Reset}");

@@ -17,13 +17,13 @@ namespace AiGateway_Core.DocumentTextExtraction
 
         public async Task<string> ExtractTextAsync(Stream fileStream, string claimedExtension, CancellationToken cancellationToken = default)
         {
-            //var realExtension = await _fileTypeDetector.DetectTypeAsync(fileStream, claimedExtension, cancellationToken);
+            var realExtension = await _fileTypeDetector.DetectTypeAsync(fileStream, claimedExtension, cancellationToken);
 
-            var extractor = _extractors.FirstOrDefault(e => e.CanHandle(claimedExtension));
+            var extractor = _extractors.FirstOrDefault(e => e.CanHandle(realExtension));
 
             if (extractor == null)
             {
-                //throw new NotSupportedException($"No extractor found for file extension '{realExtension}'.");
+                throw new NotSupportedException($"No extractor found for file extension '{realExtension}'.");
             }
 
             string extractedText = await extractor.ExtractTextAsync(fileStream, cancellationToken);

@@ -34,7 +34,7 @@ builder.Services.AddOptions<LanguageDetectionOptions>()
 
 
 builder.Services.AddSingleton<ILanguageDetector, LinguaLanguageDetector>();
-builder.Services.AddSingleton<IFileTypeDetector, MagicByteFileTypeDetector>();
+builder.Services.AddSingleton<IFileTypeDetector, FileTypeDetector>();
 builder.Services.AddSingleton<IPiiTransformer, MaskingTransformer>();
 
 builder.Services.AddScoped<IPiiGatewayOrchestrator, PiiGatewayOrchestrator>();

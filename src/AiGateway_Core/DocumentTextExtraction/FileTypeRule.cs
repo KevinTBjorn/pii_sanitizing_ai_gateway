@@ -8,6 +8,7 @@ namespace AiGateway_Core.DocumentTextExtraction
         string Extension,
         byte[]? MagicBytes = null,
         string? ContainerType = null,
-        bool IsText = false
+        bool IsText = false,
+        int MaxOffset = 0
     );
 }
