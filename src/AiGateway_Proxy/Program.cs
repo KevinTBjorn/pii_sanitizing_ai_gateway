@@ -43,6 +43,7 @@ builder.Services.AddScoped<ILlmPayloadFormatter, LlmPayloadFormatter>();
 
 builder.Services.AddTransient<IFileFormatHandler, PdfTextExtractor>();
 builder.Services.AddTransient<IFileFormatHandler, TxtTextExtractor>();
+builder.Services.AddTransient<IFileFormatHandler, DocxTextExtractor>();
 
 builder.Services.AddTransient<IDocumentExtractionService, DocumentExtractionService>();
 
