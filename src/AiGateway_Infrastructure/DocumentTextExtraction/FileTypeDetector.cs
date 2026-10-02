@@ -10,17 +10,13 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
     {
         private record FileSignature(byte[] Signature, string Extension);
 
-        // Known Binary Signatures (PDF, DOCX via ZIP, EXE, Images)
         private static readonly List<FileSignature> BinarySignatures = new()
-    {
-        new(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, ".png"),
-        new(new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 }, ".gif"),
-        new(new byte[] { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 }, ".gif"),
-        new(new byte[] { 0x25, 0x50, 0x44, 0x46 }, ".pdf"),               // PDF Magic Bytes
-        new(new byte[] { 0x4D, 0x5A }, ".exe"),
-        new(new byte[] { 0xFF, 0xD8, 0xFF }, ".jpg"),
-        new(new byte[] { 0x50, 0x4B, 0x03, 0x04 }, ".zip")              // ZIP Header (includes .docx)
-    };
+        {
+            new(new byte[] { 0x25, 0x50, 0x44, 0x46 }, ".pdf"),
+            new(new byte[] { 0x4D, 0x5A }, ".exe"),
+            new(new byte[] { 0xFF, 0xD8, 0xFF }, ".jpg"),
+            new(new byte[] { 0x50, 0x4B, 0x03, 0x04 }, ".zip")
+        };
 
         // Common Text Byte Order Marks (BOM)
         private static readonly List<FileSignature> TextBoms = new()
@@ -59,7 +55,7 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
 
                 ReadOnlySpan<byte> headerSpan = buffer.AsSpan(0, bytesRead);
 
-                // 1. Known Binary Signatures (PDF, DOCX, EXE, Images, ZIP)
+
                 foreach (var sig in BinarySignatures)
                 {
                     if (bytesRead >= sig.Signature.Length && headerSpan.Slice(0, sig.Signature.Length).SequenceEqual(sig.Signature))
@@ -72,7 +68,6 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
                     }
                 }
 
-                // 2. Text Byte Order Marks (BOM)
                 foreach (var bom in TextBoms)
                 {
                     if (bytesRead >= bom.Signature.Length && headerSpan.Slice(0, bom.Signature.Length).SequenceEqual(bom.Signature))
@@ -81,7 +76,6 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
                     }
                 }
 
-                // 3. Plain Text Check (TXT / CSV)
                 if (IsTextContent(fileStream, originalPosition))
                 {
                     return IsTextExtension(fallbackExtension) ? fallbackExtension : ".txt";
@@ -99,9 +93,6 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
             ext.Equals(".txt", StringComparison.OrdinalIgnoreCase) ||
             ext.Equals(".csv", StringComparison.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// Confirms the stream represents DOCX structure by checking for word/document.xml.
-        /// </summary>
         private static bool IsDocxStream(Stream fileStream, long originalPosition)
         {
             try
@@ -116,9 +107,6 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
             }
         }
 
-        /// <summary>
-        /// Verifies the sample buffer contains readable text by ensuring no null bytes are present.
-        /// </summary>
         private static bool IsTextContent(Stream fileStream, long originalPosition)
         {
             fileStream.Position = originalPosition;

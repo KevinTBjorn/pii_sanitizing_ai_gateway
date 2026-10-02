@@ -95,11 +95,8 @@ namespace AiGateway_Core.Orchestration
             };
         }
 
-        private static void PrintSanitizationShowcase(
-           IReadOnlyList<TextEntry> scannedEntries,
-           IReadOnlyList<TextEntry> sanitizedEntries)
+        private static void PrintSanitizationShowcase(IReadOnlyList<TextEntry> scannedEntries, IReadOnlyList<TextEntry> sanitizedEntries)
         {
-            // ANSI Escape Codes (Supported directly by Docker STDOUT & Linux terminals)
             const string Reset = "\u001b[0m";
             const string Red = "\u001b[31m";
             const string Green = "\u001b[32m";
@@ -109,7 +106,6 @@ namespace AiGateway_Core.Orchestration
 
             Console.WriteLine($"{Cyan}\n=== PII GATEWAY SHOWCASE ==={Reset}");
 
-            // 1. Scan Results
             foreach (var entry in scannedEntries)
             {
                 var detectedTypes = entry.Matches.Select(m => m.EntityType).Distinct();
@@ -127,7 +123,6 @@ namespace AiGateway_Core.Orchestration
 
             Console.WriteLine($"{Gray}--------------------------------------------------{Reset}");
 
-            // 2. Transformation Diffs
             for (int i = 0; i < scannedEntries.Count; i++)
             {
                 var original = scannedEntries[i];
@@ -140,43 +135,7 @@ namespace AiGateway_Core.Orchestration
 
             Console.WriteLine($"{Cyan}=========================================\n{Reset}");
 
-            // Ensure output is immediately flushed to Docker logs without stream buffering
             Console.Out.Flush();
         }
-
-        //public async void test()
-        //{
-        //    var cancellationToken = new CancellationToken();
-
-        //    string localFilePath = @"C:\repos\AiGateway\DocumentTest\pdfTest.pdf";
-        //    string extension = Path.GetExtension(localFilePath);
-
-        //    try
-        //    {
-        //        // 5. Open stream and pass to extraction pipeline
-        //        await using var fileStream = File.OpenRead(localFilePath);
-        //        string extractedText = await _extractionService.ExtractTextAsync(fileStream, extension, cancellationToken);
-
-        //        Console.WriteLine("\n--- Extracted Text Result ---");
-        //        Console.WriteLine(extractedText);
-        //        Console.WriteLine("----------------------------");
-
-        //        var Matches = await _scanner.DetectPiiAsync(extractedText, cancellationToken);
-
-        //        foreach (var match in Matches)
-        //        {
-        //            Console.WriteLine($"[PiiGatewayOrchestrator] Detected PII match with no overlap: {match}");
-        //            PiiMetrics.RecordPii(match.EntityType, PiiAction.Masked);
-        //        }
-        //        var cleandprompt = await _transformer.PiiTransformAsync(extractedText, Matches, cancellationToken);
-        //        Console.WriteLine($"[PiiGatewayOrchestrator] Cleaned prompt: {cleandprompt.CleanedPrompt}");
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Extraction failed: {ex.Message}");
-        //    }
-
-        //}
     }
 }
