@@ -52,7 +52,9 @@ namespace AiGateway_Infrastructure.LanguageDetection
         public string DetectLanguage(string text, string fallback)
         {
             if (string.IsNullOrWhiteSpace(text))
+            {
                 return fallback;
+            }
 
             var detectedLanguage = _detector.DetectLanguageOf(text);
 

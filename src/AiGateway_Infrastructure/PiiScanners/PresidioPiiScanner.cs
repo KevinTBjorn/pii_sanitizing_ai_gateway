@@ -33,7 +33,9 @@ namespace AiGateway_Infrastructure.PiiScanners
         public async Task<IReadOnlyList<TextEntry>> DetectPiiAsync(IReadOnlyList<TextEntry> entries, CancellationToken cancellationToken = default)
         {
             if (entries is null || entries.Count == 0)
+            {
                 return Array.Empty<TextEntry>();
+            }
 
             var scanTasks = entries.Select(entry => ScanSingleEntryAsync(entry, cancellationToken));
 
@@ -45,7 +47,9 @@ namespace AiGateway_Infrastructure.PiiScanners
         private async Task<TextEntry> ScanSingleEntryAsync(TextEntry entry, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(entry.Content))
+            {
                 return entry;
+            }
 
             var request = new
             {
@@ -56,8 +60,7 @@ namespace AiGateway_Infrastructure.PiiScanners
             var response = await _httpClient.PostAsJsonAsync("analyze", request, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var presidioResults = await response.Content
-                .ReadFromJsonAsync<List<PresidioResponseDto>>(cancellationToken) ?? new();
+            var presidioResults = await response.Content.ReadFromJsonAsync<List<PresidioResponseDto>>(cancellationToken) ?? new();
 
             var rawMatches = new List<PiiMatch>();
 
@@ -125,9 +128,7 @@ namespace AiGateway_Infrastructure.PiiScanners
 
             while (utf16Index < text.Length && currentCodePoint < codePointIndex)
             {
-                if (char.IsHighSurrogate(text[utf16Index]) &&
-                    utf16Index + 1 < text.Length &&
-                    char.IsLowSurrogate(text[utf16Index + 1]))
+                if (char.IsHighSurrogate(text[utf16Index]) && utf16Index + 1 < text.Length && char.IsLowSurrogate(text[utf16Index + 1]))
                 {
                     utf16Index += 2;
                 }

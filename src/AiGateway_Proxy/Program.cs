@@ -10,7 +10,6 @@ using AiGateway_Infrastructure.DocumentTextExtraction;
 using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.LlmPayload;
 using AiGateway_Infrastructure.PiiScanners;
-using AiGateway_Infrastructure.TextMasking;
 using AiGateway_Proxy.Middleware;
 using AiGateway_Proxy.RequestParser;
 using Microsoft.Extensions.Options;
