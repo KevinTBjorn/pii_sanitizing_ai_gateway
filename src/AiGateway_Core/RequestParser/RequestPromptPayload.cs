@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Core.IncomingLlmPayload
+namespace AiGateway_Core.RequestParser
 {
     public record RequestPromptPayload
     {

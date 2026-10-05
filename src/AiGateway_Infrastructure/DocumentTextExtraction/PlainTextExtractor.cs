@@ -1,18 +1,19 @@
 ﻿using AiGateway_Core.DocumentTextExtraction;
+using AiGateway_Infrastructure.DocumentTextExtraction;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace AiGateway_Infrastructure.DocumentTextExtraction
 {
-    public class TxtTextExtractor : IFileFormatHandler
+    public class PlainTextExtractor : IFileFormatHandler
     {
         public bool CanHandle(string extension)
         {
             if (string.IsNullOrWhiteSpace(extension))
                 return false;
 
-            return string.Equals(extension.StartsWith('.') ? extension : $".{extension}", ".txt", StringComparison.OrdinalIgnoreCase);
+            return SupportedTextExtensions.Extensions.Contains(extension.StartsWith(".") ? extension : "." + extension);
         }
 
         public async Task<string> ExtractTextAsync(Stream fileStream, CancellationToken cancellationToken = default)

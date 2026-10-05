@@ -20,13 +20,13 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
 
         // Common Text Byte Order Marks (BOM)
         private static readonly List<FileSignature> TextBoms = new()
-    {
-        new(new byte[] { 0x00, 0x00, 0xFE, 0xFF }, ".txt"), // UTF-32 BE
-        new(new byte[] { 0xFF, 0xFE, 0x00, 0x00 }, ".txt"), // UTF-32 LE
-        new(new byte[] { 0xEF, 0xBB, 0xBF }, ".txt"),       // UTF-8 BOM
-        new(new byte[] { 0xFE, 0xFF }, ".txt"),             // UTF-16 BE
-        new(new byte[] { 0xFF, 0xFE }, ".txt")              // UTF-16 LE
-    };
+        {
+            new(new byte[] { 0x00, 0x00, 0xFE, 0xFF }, ".txt"), // UTF-32 BE
+            new(new byte[] { 0xFF, 0xFE, 0x00, 0x00 }, ".txt"), // UTF-32 LE
+            new(new byte[] { 0xEF, 0xBB, 0xBF }, ".txt"),       // UTF-8 BOM
+            new(new byte[] { 0xFE, 0xFF }, ".txt"),             // UTF-16 BE
+            new(new byte[] { 0xFF, 0xFE }, ".txt")              // UTF-16 LE
+        };
 
         private readonly int _maxSignatureLength;
 
@@ -89,9 +89,7 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
             }
         }
 
-        private static bool IsTextExtension(string ext) =>
-            ext.Equals(".txt", StringComparison.OrdinalIgnoreCase) ||
-            ext.Equals(".csv", StringComparison.OrdinalIgnoreCase);
+        private static bool IsTextExtension(string ext) => SupportedTextExtensions.Extensions.Contains(ext);
 
         private static bool IsDocxStream(Stream fileStream, long originalPosition)
         {

@@ -29,7 +29,6 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
 
             var sb = new StringBuilder();
 
-            // Iterate through all paragraphs in document order
             foreach (var paragraph in body.Descendants<Paragraph>())
             {
                 foreach (var element in paragraph.Descendants())
@@ -44,7 +43,6 @@ namespace AiGateway_Infrastructure.DocumentTextExtraction
                     }
                 }
 
-                // Paragraph boundary = Enter key = new line
                 sb.AppendLine();
             }
 

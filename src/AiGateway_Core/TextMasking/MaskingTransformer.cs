@@ -2,12 +2,9 @@
 using AiGateway_Core.PiiScanners;
 using AiGateway_Core.Telemetry;
 using AiGateway_Core.TextMasking;
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 
-namespace AiGateway_Infrastructure.TextMasking
+namespace AiGateway_Core.TextMasking
 {
     public class MaskingTransformer : IPiiTransformer
     {

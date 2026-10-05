@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace AiGateway_Core.Options
+namespace AiGateway_Core.LanguageDetection
 {
     public class LanguageDetectionOptions
     {

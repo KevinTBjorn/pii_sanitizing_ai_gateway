@@ -10,10 +10,9 @@ using AiGateway_Infrastructure.DocumentTextExtraction;
 using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.LlmPayload;
 using AiGateway_Infrastructure.PiiScanners;
-using AiGateway_Infrastructure.RequestLlmPayload;
 using AiGateway_Infrastructure.TextMasking;
 using AiGateway_Proxy.Middleware;
-using AiGateway_Proxy.Parsers;
+using AiGateway_Proxy.RequestParser;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
 
@@ -42,7 +41,7 @@ builder.Services.AddScoped<IRequestParser, RequestParser>();
 builder.Services.AddScoped<ILlmPayloadFormatter, LlmPayloadFormatter>();
 
 builder.Services.AddTransient<IFileFormatHandler, PdfTextExtractor>();
-builder.Services.AddTransient<IFileFormatHandler, TxtTextExtractor>();
+builder.Services.AddTransient<IFileFormatHandler, PlainTextExtractor>();
 builder.Services.AddTransient<IFileFormatHandler, DocxTextExtractor>();
 
 builder.Services.AddTransient<IDocumentExtractionService, DocumentExtractionService>();

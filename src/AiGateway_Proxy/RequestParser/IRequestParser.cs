@@ -1,10 +1,10 @@
-﻿using AiGateway_Core.IncomingLlmPayload;
+﻿using AiGateway_Core.RequestParser;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Infrastructure.RequestLlmPayload
+namespace AiGateway_Proxy.RequestParser
 {
     public interface IRequestParser
     {

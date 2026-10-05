@@ -1,8 +1,7 @@
-﻿using AiGateway_Core.IncomingLlmPayload;
-using AiGateway_Infrastructure.RequestLlmPayload;
+﻿using AiGateway_Core.RequestParser;
 using System.Text.Json;
 
-namespace AiGateway_Proxy.Parsers
+namespace AiGateway_Proxy.RequestParser
 {
     public class RequestParser : IRequestParser
     {
