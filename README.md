@@ -1,4 +1,4 @@
-# C# AI Gateway (POC)
+# C# AI Gateway — Pre-LLM PII Sanitization
 
 A Clean Architecture-based AI Gateway built in .NET. This service acts as a reverse proxy between client applications and Large Language Models (LLMs), providing document parsing, PII sanitization, and language detection before sending prompts to the LLM.
 
@@ -58,7 +58,7 @@ To test using a sample prompt and a document included in the repository:
 2. Navigate to the root directory of the cloned repository.
 ```bash
 curl.exe -X POST http://localhost:8080/v1/chat/completions `
-  -F "prompt=Send the final summary report to Mark Ross at mark.ross@acme.corp (555-555-0199) regarding client Jane Doe." `
+  -F "prompt=mark.ross@acme.corp (555-555-0199) regarding client Jane Doe." `
   -F "model=smollm:135m" `
   -F "temperature=0.0" `
   -F "file=@DocumentTest\FileTest.docx"
@@ -81,5 +81,5 @@ The gateway emits Prometheus metrics to track request processing and PII entity 
   ```
   Complete cleanup (removes containers, networks, and persistent volumes):
   ```bash
-  docker compose --profile withgateway down -v
+  docker system prune -a --volumes
   ```
