@@ -58,7 +58,7 @@ To test using a sample prompt and a document included in the repository:
 2. Navigate to the root directory of the cloned repository.
 ```bash
 curl.exe -X POST http://localhost:8080/v1/chat/completions `
-  -F "prompt=Hej, jeg hedder Sofie Hansen og bor i Aarhus. Skriv til sofie.hansen@example.com. Min IP er 192.168.1.1, mit Visa er 4000 0000 0000 0002 og jeg arbejder hos Novo Nordisk." `
+  -F "prompt=Send the final summary report to Mark Ross at mark.ross@acme.corp (555-555-0199) regarding client Jane Doe." `
   -F "model=smollm:135m" `
   -F "temperature=0.0" `
   -F "file=@DocumentTest\FileTest.docx"
