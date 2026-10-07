@@ -62,44 +62,36 @@ RUN python -m spacy download en_core_web_md
 ```
 # Operations & Lifecycle Management: Docker Profiles
 
-
-
 ## 1. Overview of Docker Profiles
 
-To provide flexibility during development, the `docker-compose.yml` architecture separates background infrastructure from the application gateway using **Docker Compose Profiles**.
+To provide flexibility during development, the `docker-compose.yml` architecture separates core background infrastructure from the application gateway using **Docker Compose Profiles**.
 
-* **Default Mode (Infrastructure Only)**: Runs Prometheus, Grafana, Presidio, and Ollama.
-* **Gateway Profile (`withgateway`)**: Runs the complete stack, including the containerized `aigateway` proxy service. This mode leaves port `8080` open so you can run and debug `AiGateway_Proxy`
+* **Default Mode (Infrastructure Only):** Runs supporting background services (Prometheus, Grafana, Presidio, and Ollama). This mode leaves ports open on `localhost` so you can run and debug `AiGateway_Proxy` directly in your local IDE.
+* **Gateway Profile (`withgateway`):** Runs the complete containerized stack, including the `aigateway` proxy service mapped to port `8080`.
 
-To build with gateway in cli: docker compose --profile withgateway up --build -d
-To see what masking happens there: docker logs -f aigateway
+### CLI Commands
+
+**Build and start the complete stack with Gateway:**
+```bash
+docker compose --profile withgateway up --build -d
+```
+**Stream Gateway logs to inspect PII masking:**
+```bash
+docker logs -f aigateway
+```
 
 ---
 
-# Configuration Guide: PII & Language Detection
-
-This document details the `PiiOptions` and `LanguageDetection` settings defined in `appsettings.json`. These parameters control Presidio integration, payload parsing rules, and multi-language fallback behavior.
-
----
+# Configuration of AiGateway service appsettings
 
 ## 1. PII Options (`PiiOptions`)
 
-Controls communication parameters with the Presidio Analyzer service and specifies structural JSON keys to bypass during PII scanning.
+Controls communication parameters with the Presidio Analyzer service.
 
 | Key | Type | Default Value | Description |
 | :--- | :--- | :--- | :--- |
 | **`BaseUrl`** | `string` | `http://localhost:5001` | Base HTTP address of the Presidio Analyzer service. *(Overridden to `http://presidio-analyzer:3000` in Docker Compose)*. |
 | **`TimeoutSeconds`** | `integer` | `13` | Maximum time (in seconds) to wait for Presidio to analyze a payload before throwing a timeout exception. |
-| **`IgnoredKeys`** | `array` | *(See list below)* | JSON request/response object keys completely excluded from PII scanning. |
-
-### Ignored Keys Rationale (`IgnoredKeys`)
-Passing non-user text (LLM hyper-parameters, tool definitions, metadata) to Presidio increases latency and causes false positive detections. The following keys are skipped automatically during recursive JSON parsing:
-
-* **LLM Hyper-parameters:** `model`, `temperature`, `top_p`, `top_k`, `max_tokens`, `max_completion_tokens`, `presence_penalty`, `frequency_penalty`, `repeat_penalty`, `num_predict`, `seed`, `stop`, `response_format`
-* **Execution & Streaming:** `stream`, `keep_alive`
-* **Function & Tool Calling:** `tools`, `tool_choice`, `functions`
-* **Structural Metadata:** `role`, `type`, `id`, `object`, `created`, `usage`
-
 ---
 
 ## 2. Language Detection (`LanguageDetection`)

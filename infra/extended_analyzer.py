@@ -133,3 +133,35 @@ def analyze():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
+
+
+# --- MULTI-LANGUAGE CODE (DISABLED FOR NOW) ---
+# @app.route("/analyze", methods=["POST"])
+# def analyze():
+#     data = request.get_json() or {}
+#     text = data.get("text")
+    
+#     # Support 'languages' array, single 'language' string/array, or default to both ["da", "en"]
+#     raw_lang = data.get("languages") or data.get("language") or ["da", "en"]
+    
+#     if isinstance(raw_lang, str):
+#         languages = [raw_lang]
+#     elif isinstance(raw_lang, list):
+#         languages = raw_lang
+#     else:
+#         languages = ["da", "en"]
+
+#     all_results = []
+    
+#     # Iterate through each requested language and append results directly
+#     for lang in languages:
+#         results = analyzer.analyze(
+#             text=text,
+#             language=lang,
+#             entities=data.get("entities"),
+#             score_threshold=data.get("score_threshold"),
+#             return_decision_process=data.get("return_decision_process", False)
+#         )
+#         all_results.extend(results)
+
+#     return jsonify([res.to_dict() for res in all_results]), 200

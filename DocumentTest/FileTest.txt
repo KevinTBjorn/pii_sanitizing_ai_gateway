@@ -1,13 +1,6 @@
-From: Eleanor Vance e.vance1988@example-mail.com 
-To: support@store-example.com 
-Date: October 14, 2025 
-Subject: Duplicate Billing Issue - Order #84920-A 
-Hi Support Team, 
-My name is Eleanor Vance, and I am writing regarding an incorrect charge on my recent order. 
-My primary address on file is 742 Evergreen Terrace, Springfield, OR 97477. 
-I noticed a duplicate charge of $149.99 billed to my credit card ending in 4111 on October 
-12th. For identity verification, my registered account email is e.vance1988@example
-mail.com, my date of birth is 04/12/1988, and the last four digits of my SSN are 1234. 
-Please reach out to me at my mobile number (555) 019-2834 to resolve this. 
-Best regards, 
-Eleanor Vance
+CONFIDENTIAL AUDIT
+Client: Jane Doe
+Email: jane.doe@acme.corp
+Direct Line: 555-555-0123
+
+Notes: Jane Doe requested an account access reset for jane.doe@acme.corp.
