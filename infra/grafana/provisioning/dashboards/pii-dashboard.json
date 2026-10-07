@@ -662,7 +662,7 @@
           "refId": "A"
         }
       ],
-      "title": "PII Total by Category (Current Window)",
+      "title": "PII Total by Category",
       "type": "bargauge"
     },
     {
