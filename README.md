@@ -23,7 +23,7 @@ A Clean Architecture-based AI Gateway built in .NET. This service acts as a reve
 
 ### Level 2: Container Diagram
 
-![C4 Container Diagram](architecture/c4-container.drawio.png)
+![C4 Container Diagram](docs/architecture/c4-container.drawio.png)
 
 ## Getting Started
 
