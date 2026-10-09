@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AiGateway_Core.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -23,7 +24,7 @@ namespace AiGateway_Core.DocumentTextExtraction
 
             if (extractor == null)
             {
-                throw new NotSupportedException($"No extractor found for file extension '{realExtension}'.");
+                throw new GatewayException($"No extractor found for '{realExtension}'.", 415);
             }
 
             string extractedText = await extractor.ExtractTextAsync(fileStream, cancellationToken);

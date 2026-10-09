@@ -1,4 +1,5 @@
-﻿using AiGateway_Core.Options;
+﻿using AiGateway_Core.Exceptions;
+using AiGateway_Core.Options;
 using AiGateway_Core.Orchestration;
 using AiGateway_Core.RequestParser;
 using AiGateway_Proxy.RequestParser;
@@ -44,28 +45,30 @@ namespace AiGateway_Proxy.Middleware
 
                 PiiGatewayExecutionResult result = await orchestrator.OrchestrateSanitizeProcessAsync(promptContext, httpContext.RequestAborted);
 
-                _logger.LogInformation("Gateway processed request successfully. Contains PII: {ContainsPii}. PII Types: {PiiTypes}", result.ContainsPii, string.Join(", ", result.DetectedPiiTypes));
 
-                byte[] newBodyBytes = JsonSerializer.SerializeToUtf8Bytes(result.FormattedPayload);
+                if(result.ContainsPii)
+                {
+                    _logger.LogWarning("Request payload contains PII. Detected PII types: {PiiTypes}", string.Join(", ", result.DetectedPiiTypes));
 
-                httpContext.Request.Body = new MemoryStream(newBodyBytes);
-                httpContext.Request.ContentLength = newBodyBytes.Length;
-                httpContext.Request.ContentType = "application/json; charset=utf-8";
+                    byte[] newBodyBytes = JsonSerializer.SerializeToUtf8Bytes(result.FormattedPayload);
+
+                    httpContext.Request.Body = new MemoryStream(newBodyBytes);
+                    httpContext.Request.ContentLength = newBodyBytes.Length;
+                    httpContext.Request.ContentType = "application/json; charset=utf-8";
+                }
 
                 await _next(httpContext);
             }
-            catch (BadHttpRequestException ex)
+            catch (GatewayException ex)
             {
-                _logger.LogWarning(ex, "Invalid HTTP request format submitted to gateway.");
+                // Handles all expected domain and parser failures (4xx / 5xx)
+                _logger.LogWarning(ex, "Gateway request rejected: {Message}", ex.Message);
                 await WriteErrorResponseAsync(httpContext, ex.StatusCode, ex.Message);
             }
-            catch (JsonException ex)
+            catch (BadHttpRequestException ex)
             {
-                _logger.LogWarning(ex, "Failed to parse JSON request payload.");
-                await WriteErrorResponseAsync(
-                    httpContext,
-                    StatusCodes.Status400BadRequest,
-                    "Malformed JSON payload in request body.");
+                _logger.LogWarning(ex, "HTTP framework error: {Message}", ex.Message);
+                await WriteErrorResponseAsync(httpContext, ex.StatusCode, ex.Message);
             }
             catch (Exception ex)
             {

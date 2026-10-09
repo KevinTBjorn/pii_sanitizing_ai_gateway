@@ -37,7 +37,8 @@ namespace AiGateway_Infrastructure.LanguageDetection
             if (linguaLanguages.Count == 0)
             {
                 throw new InvalidOperationException(
-                    "None of the configured SupportedLanguages could be mapped to valid Lingua Language enums.");
+                        "Invalid configuration: 'SupportedLanguages' in appsettings.json contains no valid Lingua Language values. " +
+                        "Ensure at least one valid language ISO code or enum name (e.g., 'English', 'Danish') is configured.");
             }
 
             _detector = LanguageDetectorBuilder

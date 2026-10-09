@@ -1,4 +1,5 @@
-﻿using AiGateway_Core.Orchestration;
+﻿using AiGateway_Core.Exceptions;
+using AiGateway_Core.Orchestration;
 using AiGateway_Core.RequestParser;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -27,7 +28,7 @@ namespace AiGateway_Core.LlmPayload
 
             if (mapper == null)
             {
-                throw new NotSupportedException($"No payload mapper registered for LLM provider '{providerName}'.");
+                throw new GatewayException($"No payload mapper registered for LLM provider '{providerName}'.", 415);
             }
 
             return mapper.MapToProviderPayload(request, sanitizedEntries);
