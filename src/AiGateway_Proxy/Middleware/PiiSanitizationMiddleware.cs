@@ -61,7 +61,6 @@ namespace AiGateway_Proxy.Middleware
             }
             catch (GatewayException ex)
             {
-                // Handles all expected domain and parser failures (4xx / 5xx)
                 _logger.LogWarning(ex, "Gateway request rejected: {Message}", ex.Message);
                 await WriteErrorResponseAsync(httpContext, ex.StatusCode, ex.Message);
             }
