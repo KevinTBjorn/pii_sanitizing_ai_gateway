@@ -1,5 +1,5 @@
 CONFIDENTIAL AUDIT
-Client: Jane Doe
+Client: Jane Doe.
 Email: jane.doe@acme.corp
 Direct Line: 555-555-0123
 
