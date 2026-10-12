@@ -33,6 +33,8 @@ A Clean Architecture-based AI Gateway built in .NET. This service acts as a reve
 
 > **Note:** Ensure your terminal's current working directory is the project root before running the commands below.
 
+> **Note:** Docker Desktop must be running in the background before executing any commands.
+
 > **Note on LLM Output Quality:** The default model (`smollm:135m`) is constrained purely for low-latency testing. output quality is secondary, it exists purely to demonstrate the full end-to-end process.
 
 ### Overview of Docker Profiles
@@ -85,5 +87,5 @@ The gateway emits Prometheus metrics to track request processing and PII entity 
   ```
   Complete cleanup (removes containers, networks, and persistent volumes):
   ```bash
-  docker system prune -a --volumes
+  docker compose --profile withgateway down -v --rmi all
   ```
