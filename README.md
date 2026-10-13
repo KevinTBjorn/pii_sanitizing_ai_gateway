@@ -25,6 +25,9 @@ A Clean Architecture-based AI Gateway built in .NET. This service acts as a reve
 
 ![C4 Container Diagram](docs/architecture/c4-container.drawio.png)
 
+## PII Masking in Action
+![result-demo](docs/images/result-demo.png)
+
 ## Getting Started
 
 ### Prerequisites
