@@ -1,8 +1,9 @@
 ﻿using AiGateway_Core.Exceptions;
 using AiGateway_Core.RequestParser;
+using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 
-namespace AiGateway_Proxy.RequestParser
+namespace AiGateway_Infrastructure.RequestParser
 {
     public class RequestParser : IRequestParser
     {
