@@ -20,8 +20,8 @@ using OpenTelemetry.Metrics;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddOptions<PiiGatewayOptions>()
-    .Bind(builder.Configuration.GetSection(PiiGatewayOptions.SectionName))
+builder.Services.AddOptions<PresidioOptions>()
+    .Bind(builder.Configuration.GetSection(PresidioOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
@@ -56,9 +56,9 @@ builder.Services.AddKeyedSingleton<ILlmProviderPayloadMapper, OpenAiPayloadMappe
 
 builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>
 {
-    var options = sp.GetRequiredService<IOptions<PiiGatewayOptions>>().Value;
+    var options = sp.GetRequiredService<IOptions<PresidioOptions>>().Value;
 
-    client.BaseAddress = new Uri(options.presidioURL);
+    client.BaseAddress = options.PresidioUrl;
     client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
 });
 
