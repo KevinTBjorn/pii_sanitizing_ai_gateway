@@ -2,7 +2,11 @@
 using AiGateway_Core.Options;
 using AiGateway_Core.Orchestration;
 using AiGateway_Core.RequestParser;
-using AiGateway_Proxy.RequestParser;
+using AiGateway_Core.Routing;
+using AiGateway_Infrastructure.RequestParser;
+using AiGateway_Infrastructure.Routing;
+using Grpc.Net.Client.Balancer;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.Extensions.Options;
 using System.Net.Mime;
 using System.Text;
@@ -27,7 +31,7 @@ namespace AiGateway_Proxy.Middleware
             _logger = logger;
         }
 
-        public async Task InvokeAsync(HttpContext httpContext, IRequestParser requestParser, IPiiGatewayOrchestrator orchestrator)
+        public async Task InvokeAsync(HttpContext httpContext, IRequestParser requestParser, IPiiGatewayOrchestrator orchestrator, IGatewayRouter router)
         {
             if (!HttpMethods.IsPost(httpContext.Request.Method))
             {
@@ -39,11 +43,14 @@ namespace AiGateway_Proxy.Middleware
 
             try
             {
-                //  [TODO] create a router based on the provide model given, which _llmPayloadFormatter.FormatPayload uses and the http message
-
                 RequestPromptContext promptContext = await requestParser.ParseAsync(httpContext.Request, httpContext.RequestAborted);
 
-                PiiGatewayExecutionResult result = await orchestrator.OrchestrateSanitizeProcessAsync(promptContext, httpContext.RequestAborted);
+                RouteDestination destination = router.ResolveRoute(promptContext.PromptRequest.Model)
+                    ?? throw new GatewayException(
+                        $"The model '{promptContext.PromptRequest.Model}' does not exist or is not configured on this gateway.",
+                        StatusCodes.Status404NotFound);
+
+                PiiGatewayExecutionResult result = await orchestrator.OrchestrateSanitizeProcessAsync(promptContext, destination.Format, httpContext.RequestAborted);
 
 
                 if(result.ContainsPii)

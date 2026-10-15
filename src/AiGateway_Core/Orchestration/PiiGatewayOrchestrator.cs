@@ -2,6 +2,7 @@
 using AiGateway_Core.LlmPayload;
 using AiGateway_Core.PiiScanners;
 using AiGateway_Core.RequestParser;
+using AiGateway_Core.Routing;
 using AiGateway_Core.Telemetry;
 using AiGateway_Core.TextMasking;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,7 @@ namespace AiGateway_Core.Orchestration
             _logger = logger;
         }
 
-        public async Task<PiiGatewayExecutionResult> OrchestrateSanitizeProcessAsync(RequestPromptContext context, CancellationToken cancellationToken = default)
+        public async Task<PiiGatewayExecutionResult> OrchestrateSanitizeProcessAsync(RequestPromptContext context, LlmPayloadFormat payloadFormat, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context);
 
@@ -85,7 +86,7 @@ namespace AiGateway_Core.Orchestration
 
             PrintSanitizationShowcase(scannedEntries, sanitizedEntries);
 
-            object formattedPayload = _llmPayloadFormatter.FormatPayload("openai", context.PromptRequest, sanitizedEntries);
+            object formattedPayload = _llmPayloadFormatter.FormatPayload(payloadFormat, context.PromptRequest, sanitizedEntries);
 
             return new PiiGatewayExecutionResult
             {

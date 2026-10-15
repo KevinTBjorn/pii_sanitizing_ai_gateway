@@ -4,14 +4,16 @@ using AiGateway_Core.LlmPayload;
 using AiGateway_Core.Options;
 using AiGateway_Core.Orchestration;
 using AiGateway_Core.PiiScanners;
+using AiGateway_Core.Routing;
 using AiGateway_Core.Telemetry;
 using AiGateway_Core.TextMasking;
 using AiGateway_Infrastructure.DocumentTextExtraction;
 using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.LlmPayload;
 using AiGateway_Infrastructure.PiiScanners;
+using AiGateway_Infrastructure.RequestParser;
+using AiGateway_Infrastructure.Routing;
 using AiGateway_Proxy.Middleware;
-using AiGateway_Proxy.RequestParser;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
 
@@ -30,11 +32,16 @@ builder.Services.AddOptions<LanguageDetectionOptions>()
         "LanguageDetection:SupportedLanguages cannot be null or empty.")
     .ValidateOnStart();
 
+builder.Services.Configure<LlmRoutingOptions>(
+    builder.Configuration.GetSection(LlmRoutingOptions.SectionName));
+
 
 builder.Services.AddSingleton<ILanguageDetector, LinguaLanguageDetector>();
 builder.Services.AddSingleton<IFileTypeDetector, FileTypeDetector>();
 builder.Services.AddSingleton<IPiiTransformer, MaskingTransformer>();
+builder.Services.AddSingleton<IGatewayRouter, GatewayRouter>();
 
+builder.Services.AddScoped<RouteConfig>();
 builder.Services.AddScoped<IPiiGatewayOrchestrator, PiiGatewayOrchestrator>();
 builder.Services.AddScoped<IRequestParser, RequestParser>();
 builder.Services.AddScoped<ILlmPayloadFormatter, LlmPayloadFormatter>();
@@ -45,7 +52,7 @@ builder.Services.AddTransient<IFileFormatHandler, DocxTextExtractor>();
 
 builder.Services.AddTransient<IDocumentExtractionService, DocumentExtractionService>();
 
-builder.Services.AddKeyedSingleton<ILlmProviderPayloadMapper, OpenAiPayloadMapper>("openai");
+builder.Services.AddKeyedSingleton<ILlmProviderPayloadMapper, OpenAiPayloadMapper>(LlmPayloadFormat.OpenAi);
 
 builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>
 {
