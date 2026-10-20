@@ -1,4 +1,6 @@
-﻿using AiGateway_Core.Exceptions;
+﻿using AiGateway_Core.Attributes;
+using AiGateway_Core.Exceptions;
+using AiGateway_Core.Forwarding;
 using AiGateway_Core.Options;
 using AiGateway_Core.Orchestration;
 using AiGateway_Core.RequestParser;
@@ -39,7 +41,13 @@ namespace AiGateway_Proxy.Middleware
                 return;
             }
 
-            httpContext.Request.EnableBuffering();
+            var endpoint = httpContext.GetEndpoint();
+
+            if (endpoint is null || endpoint.Metadata.GetMetadata<SkipPiiSanitizationAttribute>() is not null)
+            {
+                await _next(httpContext);
+                return;
+            }
 
             try
             {
@@ -53,16 +61,18 @@ namespace AiGateway_Proxy.Middleware
                 PiiGatewayExecutionResult result = await orchestrator.OrchestrateSanitizeProcessAsync(promptContext, destination.Format, httpContext.RequestAborted);
 
 
-                if(result.ContainsPii)
+                if (result.ContainsPii)
                 {
                     _logger.LogWarning("Request payload contains PII. Detected PII types: {PiiTypes}", string.Join(", ", result.DetectedPiiTypes));
-
-                    byte[] newBodyBytes = JsonSerializer.SerializeToUtf8Bytes(result.FormattedPayload);
-
-                    httpContext.Request.Body = new MemoryStream(newBodyBytes);
-                    httpContext.Request.ContentLength = newBodyBytes.Length;
-                    httpContext.Request.ContentType = "application/json; charset=utf-8";
                 }
+
+                httpContext.Features.Set(new LlmForwardingFeature
+                {
+                    TargetEndpoint = destination.Endpoint,
+                    FormattedPayload = result.FormattedPayload
+                });
+
+                httpContext.Request.ContentType = "application/json";
 
                 await _next(httpContext);
             }
