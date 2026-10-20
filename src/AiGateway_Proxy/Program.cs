@@ -1,4 +1,5 @@
 using AiGateway_Core.DocumentTextExtraction;
+using AiGateway_Core.Forwarding;
 using AiGateway_Core.LanguageDetection;
 using AiGateway_Core.LlmPayload;
 using AiGateway_Core.Options;
@@ -8,6 +9,7 @@ using AiGateway_Core.Routing;
 using AiGateway_Core.Telemetry;
 using AiGateway_Core.TextMasking;
 using AiGateway_Infrastructure.DocumentTextExtraction;
+using AiGateway_Infrastructure.Forwarding;
 using AiGateway_Infrastructure.LanguageDetection;
 using AiGateway_Infrastructure.LlmPayload;
 using AiGateway_Infrastructure.PiiScanners;
@@ -54,6 +56,7 @@ builder.Services.AddTransient<IDocumentExtractionService, DocumentExtractionServ
 
 builder.Services.AddKeyedSingleton<ILlmProviderPayloadMapper, OpenAiPayloadMapper>(LlmPayloadFormat.OpenAi);
 
+builder.Services.AddHttpClient<ILlmForwardingService, LlmForwardingService>();
 builder.Services.AddHttpClient<IPiiScanner, PresidioPiiScanner>((sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<PresidioOptions>>().Value;
