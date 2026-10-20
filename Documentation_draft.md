@@ -8,7 +8,7 @@ This documentation describes the architecture, technology stack, and instruction
 
 | Component | Technology | Role / Function |
 | :--- | :--- | :--- |
-| **Reverse Proxy** | .NET 10 / YARP | Receives client requests, coordinates PII scanning, and forwards requests to the LLM. |
+| **Reverse Proxy** | .NET 10 | Receives client requests, coordinates PII scanning, and forwards requests to the LLM. |
 | **PII Engine** | Presidio (Python / FastAPI) | Detects and masks sensitive information (e.g., CPR numbers, email addresses). |
 | **LLM Service** | Ollama (`smollm:135m`) | Hosts and serves the local language model. |
 | **Metrics & Monitoring** | Prometheus & Grafana | Collects metrics (`aigateway_pii_occurrences_total`) and visualizes dashboards. |
