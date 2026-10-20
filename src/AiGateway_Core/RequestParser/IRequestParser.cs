@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Infrastructure.RequestParser
+namespace AiGateway_Core.RequestParser
 {
     public interface IRequestParser
     {
