@@ -12,32 +12,45 @@ namespace AiGateway_Infrastructure.LlmPayload
         public object MapToProviderPayload(RequestPromptPayload request, IReadOnlyList<TextEntry> sanitizedEntries)
         {
             ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(sanitizedEntries);
 
             var messages = new List<object>();
 
             var docContents = sanitizedEntries
                 .Where(e => e.Source == TextSourceType.Document && !string.IsNullOrWhiteSpace(e.Content))
-                .Select(e => e.Content);
+                .Select(e => e.Content)
+                .ToArray();
 
-            string userPrompt = sanitizedEntries
-                .FirstOrDefault(e => e.Source == TextSourceType.UserPrompt)?.Content
-                ?? request.Prompt
-                ?? string.Empty;
+            string? userPrompt = sanitizedEntries
+                .FirstOrDefault(e => e.Source == TextSourceType.UserPrompt)?.Content;
 
-            if (docContents.Any())
+            if (docContents.Length > 0)
             {
+                var contextBuilder = new StringBuilder();
+                contextBuilder.Append("<context>\n");
+                for (int i = 0; i < docContents.Length; i++)
+                {
+                    contextBuilder.Append($"  <document index=\"{i + 1}\">\n");
+                    contextBuilder.Append(docContents[i]);
+                    contextBuilder.Append("\n  </document>\n");
+                }
+                contextBuilder.AppendLine("</context>");
+
                 messages.Add(new
                 {
                     role = "system",
-                    content = $"Context Documents:\n{string.Join("\n---\n", docContents)}"
+                    content = contextBuilder.ToString()
                 });
             }
 
-            messages.Add(new
+            if (!string.IsNullOrWhiteSpace(userPrompt))
             {
-                role = "user",
-                content = userPrompt
-            });
+                messages.Add(new
+                {
+                    role = "user",
+                    content = userPrompt
+                });
+            }
 
             return new
             {
