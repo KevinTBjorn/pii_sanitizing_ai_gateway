@@ -8,7 +8,7 @@ A Clean Architecture-based AI Gateway built in .NET. This service acts as a reve
 *   **Structure:** Clean Architecture (`AiGateway_Core` for domain logic/interfaces, `AiGateway_Infrastructure` External service implementations, `AiGateway_Proxy` for HTTP/Transport).
 *   **PII Sanitization:** Microsoft Presidio (Containerized) + Custom C# masking
 *   **Language Detection:** Lingua.
-*   **LLM Provider:** Ollama (Local models).
+*   **LLM Provider:** Ollama (Local models) & `mock-llm-echo`.
 *   **Telemetry:** Prometheus & Grafana.
 *   **Infrastructure:** Docker Compose.
 
@@ -16,6 +16,7 @@ A Clean Architecture-based AI Gateway built in .NET. This service acts as a reve
 
 *   **Multipart Request Parsing:** Accepts prompts alongside documents (e.g., `.txt`, `.docx`, `.pdf`).
 *   **PII Masking:** Detects sensitive data using Presidio and replaces it with tags (e.g., `[MASKED_NAME]`, `[MASKED_EMAIL]`).
+- **Dynamic Multi-Model Routing:** Flexibly dispatches requests to different backend endpoints (e.g., local Ollama instances vs. internal mock servers) based on the requested model name.
 *   **Language Fallback:** Automatically detects user prompt language, falling back to a default configuration when confidence is low.
 *   **Observability:** Emits PII masking metrics and request telemetry.
 

@@ -58,6 +58,13 @@ services:
       curl -s http://ollama:11434/api/pull -d '{\"name\": \"smollm:135m\"}';
       echo 'Model ready!';
       "
+  
+  mock-llm-echo:
+    image: ealen/echo-server
+    container_name: mock-llm-echo
+    ports:
+      - "11435:80"
+    restart: unless-stopped
 
 # Only runs when '--profile withgateway' is specified
   aigateway:
@@ -70,9 +77,11 @@ services:
     environment:
       - PresidioOptions__PresidioUrl=http://presidio-analyzer:3000
       - LlmRoutingOptions__ModelRoutes__0__Url=http://ollama:11434/v1/chat/completions
+      - LlmRoutingOptions__ModelRoutes__1__Url=http://mock-llm-echo:80/v1/chat/completions
     depends_on:
       - presidio-analyzer
       - ollama
+      - mock-llm-echo
     profiles:
       - withgateway
 
