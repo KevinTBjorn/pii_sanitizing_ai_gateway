@@ -43,6 +43,7 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+    profiles: ["with-ollama"]
 
   # Helper container that automatically pulls the model once Ollama starts
   ollama-model-pull:
@@ -58,6 +59,7 @@ services:
       curl -s http://ollama:11434/api/pull -d '{\"name\": \"smollm:135m\"}';
       echo 'Model ready!';
       "
+    profiles: ["with-ollama"]
   
   mock-llm-echo:
     image: ealen/echo-server
@@ -80,10 +82,8 @@ services:
       - LlmRoutingOptions__ModelRoutes__1__Url=http://mock-llm-echo:80/v1/chat/completions
     depends_on:
       - presidio-analyzer
-      - ollama
       - mock-llm-echo
-    profiles:
-      - withgateway
+    profiles: ["withgateway"]
 
 volumes:
   ollama_data:

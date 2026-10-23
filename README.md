@@ -33,20 +33,19 @@ A Clean Architecture-based AI Gateway built in .NET. This service acts as a reve
 
 ### Prerequisites
 *   Docker & Docker Compose
-*   .NET SDK (for local debugging)
+*   .NET 10 SDK (for local debugging)
 
 > **Note:** Ensure your terminal's current working directory is the project root before running the commands below.
 
 > **Note:** Docker Desktop must be running in the background before executing any commands.
 
-> **Note on LLM Output Quality:** The default model (`smollm:135m`) is constrained purely for low-latency testing. output quality is secondary, it exists purely to demonstrate the full end-to-end process.
-
 ### Overview of Docker Profiles
 
 To provide flexibility during development, the `docker-compose.yml` architecture separates core background infrastructure from the application gateway using **Docker Compose Profiles**.
 
-* **Default Mode (Infrastructure Only):** Runs supporting background services (Prometheus, Grafana, Presidio, and Ollama). This mode leaves out the Gateway so you can run and debug `AiGateway` directly in your local IDE.
-* **Gateway Profile (`withgateway`):** Runs the complete containerized stack, including the `aigateway` proxy service mapped to port `8080`.
+* **Default Mode (Infrastructure Only):** Runs supporting background services (Prometheus, Grafana, Presidio and `mock-llm-echo`). This mode leaves out the Gateway so you can run and debug `AiGateway` directly in your local IDE.
+* **Gateway Profile (`withgateway`):** Runs the C# Gateway which is mapped to port `8080`.
+* **Ollama Profile (`with-ollama`):** Adds a local Ollama runner for actual model inference. The default model (`smollm:135m`) is constrained purely for low-latency testing. output quality is secondary, it exists purely to demonstrate the full end-to-end process.
 
 ### CLI Commands
 
@@ -69,10 +68,11 @@ To test using a sample prompt and a document included in the repository:
 ```bash
 curl.exe -X POST http://localhost:8080/v1/chat/completions `
   -F "prompt=mark.ross@acme.corp (555-555-0199) regarding client Jane Doe." `
-  -F "model=smollm:135m" `
+  -F "model=mock-model" `
   -F "temperature=0.0" `
   -F "file=@DocumentTest\FileTest.docx"
 ```
+> **Note:** If testing with Ollama, set the `"model"` parameter to `"smollm:135m"`.
 ---
 ### Viewing the Grafana Dashboard
 The gateway emits Prometheus metrics to track request processing and PII entity statistics.
@@ -85,7 +85,7 @@ The gateway emits Prometheus metrics to track request processing and PII entity 
    * **Password:** `admin`
 ---
 ### Stopping and Cleanup
-  Stop containers (preserves downloaded Ollama models and volume data):
+  Stop containers (preserves volume data):
   ```bash
   docker compose --profile withgateway down
   ```
