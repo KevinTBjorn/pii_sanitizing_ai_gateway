@@ -32,22 +32,43 @@ def build_custom_analyzer():
             registry.add_recognizer(rec_da)
 
     # Define pattern
-    cpr_pattern = Pattern(
-        name="cpr_pattern",
-        regex=r"(?<!\w)(?:0[1-9]|[12][0-9]|3[01])(?:0[1-9]|1[0-2])[0-9]{2}[- ]?[0-9]{4}(?!\w)",
-        score=0.65
+    Generic_eight_digit_pattern = Pattern(
+        name="Generic_8_digit_generic",
+        regex=r"(?<!\d)(?!(?:19|20)\d{6})[1-9][0-9]{7}(?!\d)",
+        score=0.6
     )
 
-    email_pattern = Pattern(
-        name="email_pattern",
-        regex=r"(?i)\b[a-zA-Z0-9æøåÆØÅ._%+-]+@[a-zA-Z0-9æøåÆØÅ.-]+\.[a-zA-ZæøåÆØÅ]{2,}\b",
-        score=1.0
+    cpr_pattern = Pattern(
+        name="cpr_pattern",
+        regex=r"(?<!\d)(?:0[1-9]|[12]\d|3[01])(?:0[1-9]|1[0-2])\d{2}[- ]?\d{4}(?!\d)",
+        score=0.5
     )
 
     cvr_pattern = Pattern(
         name="cvr_pattern",
-        regex=r"(?<!\d)[1-9][0-9]{7}(?!\d)",
-        score=0.4
+        regex=r"(?<!\d)(?:DK[\s.-]*)?(?!(?:19|20)\d{6})[1-9][0-9]{7}(?!\d)",
+        score=0.5
+    )
+
+    dk_phone_pattern = Pattern(
+        name="dk_phone_pattern",
+        regex=r"(?<!\d)(?:(?:\+|00)45[\s.-]*)?[1-9](?:[\s.-]*\d){7}(?!\d)",
+        score=0.50
+    )
+
+    email_pattern = Pattern(
+        name="email_pattern",
+        regex=(
+                r"(?i)"                                              # Case-insensitive
+                r"(?<![a-z0-9æøå_%+-])"                              # Left boundary
+                r"[a-z0-9æøå_%+.-]+"                                 # Permissive local part (allows typos/double dots)
+                r"\s*(?:@|\[at\]|\(at\)|\bat\b)\s*"                  # @ or obfuscated AT (with optional spaces)
+                r"[a-z0-9æøå.-]+"                                     # Permissive domain name
+                r"\s*(?:\.|=|\[dot\]|\(dot\)|\bdot\b)\s*"             # Dot or obfuscated DOT (with optional spaces)
+                r"[a-z0-9-]{1,}"                                     # TLD (allows 1+ chars, e.g. typos like .c or .dk)
+                r"(?![a-z0-9æøå-])"                                  # Right boundary
+            ),
+        score=1.0
     )
 
     bank_pattern = Pattern(
@@ -64,19 +85,20 @@ def build_custom_analyzer():
 
     for lang in ["da", "en"]:
         # Adds pattern to multiple language
+
+        registry.add_recognizer(PatternRecognizer(
+            name=f"GenericEightDigitRecognizer_{lang}",
+            supported_entity="Generic_eight_digit",
+            supported_language=lang,
+            patterns=[Generic_eight_digit_pattern]
+        ))
+
         registry.add_recognizer(PatternRecognizer(
             name=f"DkCprRecognizer_{lang}",
             supported_entity="DK_CPR",
             supported_language=lang,
             patterns=[cpr_pattern],
-            context=["cpr", "cpr-nr", "personnummer", "cpr nr"]
-        ))
-        
-        registry.add_recognizer(PatternRecognizer(
-            name=f"CustomEmailRecognizer_{lang}",
-            supported_entity="EMAIL_ADDRESS",
-            supported_language=lang,
-            patterns=[email_pattern]
+            context=["cpr", "cprnr", "cpr-nr", "cprnummer", "cpr-nummer", "personnummer", "person-nr", "personnr"]
         ))
 
         registry.add_recognizer(PatternRecognizer(
@@ -84,7 +106,22 @@ def build_custom_analyzer():
             supported_entity="DK_CVR",
             supported_language=lang,
             patterns=[cvr_pattern],
-            context=["cvr", "cvr-nr", "virksomhedsnummer", "cvr nr"]
+            context=["cvr", "cvrnr", "cvr-nr", "virksomhed", "faktura", "moms", "selskab", "vats", "firma", "aps", "a/s"]
+        ))
+
+        registry.add_recognizer(PatternRecognizer(
+            name=f"DkPhoneRecognizer_{lang}",
+            supported_entity="DK_PHONE",
+            supported_language=lang,
+            patterns=[dk_phone_pattern],
+            context=["tlf", "tlfnr", "telefon", "mobil", "ring", "kontakt", "call", "sms"]
+        ))
+        
+        registry.add_recognizer(PatternRecognizer(
+            name=f"CustomEmailRecognizer_{lang}",
+            supported_entity="EMAIL_ADDRESS",
+            supported_language=lang,
+            patterns=[email_pattern]
         ))
 
         registry.add_recognizer(PatternRecognizer(
