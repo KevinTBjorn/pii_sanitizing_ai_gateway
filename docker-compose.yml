@@ -30,7 +30,7 @@ services:
       dockerfile: Dockerfile.presidio
     container_name: presidio_analyzer
     ports:
-      - "127.0.0.1:5001:3000"
+      - "127.0.0.1:5000:3000"
     volumes:
       - ./infra/extended_analyzer.py:/app/extended_analyzer.py:ro
     restart: unless-stopped
