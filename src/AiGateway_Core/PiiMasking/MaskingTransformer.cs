@@ -47,7 +47,7 @@ namespace AiGateway_Core.PiiMasking
 
             foreach (var match in matches.OrderByDescending(m => m.Start))
             {
-                string replacementText = $"[MASKED_{match.EntityType.ToUpperInvariant()}]";
+                string replacementText = $"<{match.EntityType.ToUpperInvariant()}>";
 
                 builder.Remove(match.Start, match.Length);
                 builder.Insert(match.Start, replacementText);

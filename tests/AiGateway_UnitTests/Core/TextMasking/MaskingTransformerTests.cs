@@ -31,7 +31,7 @@ namespace AiGateway_UnitTests.Core.TextMasking
             var result = await _sut.PiiTransformAsync(new[] { entry }, TestContext.Current.CancellationToken);
 
             Assert.Single(result);
-            Assert.Equal("[MASKED_NAME] sent email to [MASKED_EMAIL] today", result[0].Content);
+            Assert.Equal("<NAME> sent email to <EMAIL> today", result[0].Content);
             Assert.Empty(result[0].Matches);
         }
 
