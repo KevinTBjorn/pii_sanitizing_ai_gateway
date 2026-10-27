@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AiGateway_Core.TextMasking
+namespace AiGateway_Core.PiiMasking
 {
     public interface IPiiTransformer
     {

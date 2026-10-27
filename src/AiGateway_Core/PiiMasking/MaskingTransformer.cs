@@ -1,10 +1,9 @@
 ﻿using AiGateway_Core.Orchestration;
 using AiGateway_Core.PiiScanners;
 using AiGateway_Core.Telemetry;
-using AiGateway_Core.TextMasking;
 using System.Text;
 
-namespace AiGateway_Core.TextMasking
+namespace AiGateway_Core.PiiMasking
 {
     public class MaskingTransformer : IPiiTransformer
     {

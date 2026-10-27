@@ -9,7 +9,7 @@ using AiGateway_Core.PiiScanners;
 using AiGateway_Core.RequestParser;
 using AiGateway_Core.Routing;
 using AiGateway_Core.Telemetry;
-using AiGateway_Core.TextMasking;
+using AiGateway_Core.PiiMasking;
 using AiGateway_Infrastructure.DocumentTextExtraction;
 using AiGateway_Infrastructure.Forwarding;
 using AiGateway_Infrastructure.LanguageDetection;

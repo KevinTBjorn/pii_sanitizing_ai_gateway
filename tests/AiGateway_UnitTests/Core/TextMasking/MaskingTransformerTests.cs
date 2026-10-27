@@ -1,6 +1,6 @@
 ﻿using AiGateway_Core.Orchestration;
 using AiGateway_Core.PiiScanners;
-using AiGateway_Core.TextMasking;
+using AiGateway_Core.PiiMasking;
 using System;
 using System.Collections.Generic;
 using System.Text;
