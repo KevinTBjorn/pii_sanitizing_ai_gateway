@@ -20,8 +20,9 @@ def build_custom_analyzer():
 
     global_recognizer_names = [
         "CreditCardRecognizer", "IbanRecognizer", "IpRecognizer",
-        "CryptoRecognizer", "UrlRecognizer",
-        "MacAddressRecognizer", "PhoneRecognizer", "DateRecognizer"
+        "CryptoRecognizer", "UrlRecognizer", "UrlRecognizer",
+        "MacAddressRecognizer", "PhoneRecognizer", "DateRecognizer",
+        "UuidRecognizer"
     ]
 
     existing_recognizers = list(registry.recognizers)
