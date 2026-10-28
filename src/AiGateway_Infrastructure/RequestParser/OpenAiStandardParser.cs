@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace AiGateway_Infrastructure.RequestParser
 {
-    public class RequestParser : IRequestParser
+    public class OpenAiStandardParser : IRequestParser
     {
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
