@@ -46,7 +46,7 @@ namespace AiGateway_Core.Orchestration
             {
                 foreach (var file in context.Files)
                 {
-                    string extractedText = await _extractionService.ExtractTextAsync(file.fileStream, file.Extension, cancellationToken);
+                    string extractedText = await _extractionService.ExtractTextAsync(file.fileStream, file.extension, cancellationToken);
 
                     if (!string.IsNullOrWhiteSpace(extractedText))
                     {

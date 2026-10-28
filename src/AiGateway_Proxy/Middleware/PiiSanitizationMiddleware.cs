@@ -51,7 +51,7 @@ namespace AiGateway_Proxy.Middleware
 
             try
             {
-                RequestPromptContext promptContext = await requestParser.ParseAsync(httpContext.Request, httpContext.RequestAborted);
+                await using RequestPromptContext promptContext = await requestParser.ParseAsync(httpContext.Request, httpContext.RequestAborted);
 
                 RouteDestination destination = router.ResolveRoute(promptContext.PromptRequest.Model)
                     ?? throw new GatewayException(
