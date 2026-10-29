@@ -48,7 +48,7 @@ builder.Services.AddSingleton<IGatewayRouter, GatewayRouter>();
 
 builder.Services.AddScoped<RouteConfig>();
 builder.Services.AddScoped<IPiiGatewayOrchestrator, PiiGatewayOrchestrator>();
-builder.Services.AddScoped<IRequestParser, OpenAiStandardParser>();
+builder.Services.AddScoped<IRequestParser, RequestParser>();
 builder.Services.AddScoped<ILlmPayloadFormatter, LlmPayloadFormatter>();
 
 builder.Services.AddTransient<IFileFormatHandler, PdfTextExtractor>();
