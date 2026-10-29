@@ -56,7 +56,8 @@ namespace AiGateway_Infrastructure.LlmPayload
             {
                 model = request.Model,
                 messages = messages,
-                temperature = request.Temperature
+                temperature = request.Temperature,
+                max_tokens = request.Max_Tokens
             };
         }
     }

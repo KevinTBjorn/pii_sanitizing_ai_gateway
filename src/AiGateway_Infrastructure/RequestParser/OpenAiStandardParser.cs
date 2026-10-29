@@ -37,16 +37,8 @@ namespace AiGateway_Infrastructure.RequestParser
                     throw new GatewayException("The 'model' form field is required for request routing.", 400);
                 }
 
-                var gatewayRequest = new RequestPromptPayload
-                {
-                    Prompt = prompt,
-                    Model = model
-                };
-
-                if (double.TryParse(form["temperature"], out var temp))
-                {
-                    gatewayRequest = gatewayRequest with { Temperature = temp };
-                }
+                double? temperature = double.TryParse(form["temperature"], out var temp) ? temp : null;
+                int? max_Tokens = int.TryParse(form["max_tokens"], out var tokens) ? tokens : null;
 
                 var files = form.Files
                     .Where(f => f.Length > 0)
@@ -55,7 +47,13 @@ namespace AiGateway_Infrastructure.RequestParser
 
                 return new RequestPromptContext
                 {
-                    PromptRequest = gatewayRequest,
+                    PromptRequest = new RequestPromptPayload
+                    {
+                        Model = model,
+                        Prompt = prompt,
+                        Temperature = temperature,
+                        Max_Tokens = max_Tokens
+                    },
                     Files = files
                 };
             }
