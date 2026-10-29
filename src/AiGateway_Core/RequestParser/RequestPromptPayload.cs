@@ -8,6 +8,7 @@ namespace AiGateway_Core.RequestParser
     {
         public required string Prompt { get; init; }
         public required string Model { get; init; }
-        public double Temperature { get; init; } = 0.7;
+        public double? Temperature { get; init; }
+        public int? Max_Tokens { get; init; }
     }
 }
