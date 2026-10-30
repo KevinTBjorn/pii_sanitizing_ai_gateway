@@ -93,3 +93,9 @@ The gateway emits Prometheus metrics to track request processing and PII entity 
   ```bash
   docker compose --profile withgateway down -v --rmi all
   ```
+
+## Future Improvements
+  * **Multi-Provider Payload Translation:** Add formatters (`ILlmPayloadFormatter`) for additional provider schemas (e.g., Anthropic Messages API, Google Gemini API) to allow model-agnostic client requests.
+  * **Resilience & Fallback Routing:** Integrate circuit breaker and retry policies (via Polly) into `IGatewayRouter` for seamless failover to secondary endpoints/regions during LLM provider outages.
+  * **Allocation-Free Validation Pipeline:** Replace exception-driven control flow (`throw GatewayException`) with a stack-allocated `readonly struct Result<T>` pattern, eliminating heap allocations and stack-unwinding overhead on bad requests (HTTP 400).
+* **Custom Redaction Rules:** Support configurable per-tenant PII policies (e.g., masking vs. synthetic entity replacement vs. total redaction).

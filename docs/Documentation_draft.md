@@ -90,7 +90,7 @@ Controls communication parameters with the Presidio Analyzer service.
 
 | Key | Type | Default Value | Description |
 | :--- | :--- | :--- | :--- |
-| **`BaseUrl`** | `string` | `http://localhost:5001` | Base HTTP address of the Presidio Analyzer service. *(Overridden to `http://presidio-analyzer:3000` in Docker Compose)*. |
+| **`BaseUrl`** | `string` | `http://localhost:5000` | Base HTTP address of the Presidio Analyzer service. *(Overridden to `http://presidio-analyzer:3000` in Docker Compose)*. |
 | **`TimeoutSeconds`** | `integer` | `13` | Maximum time (in seconds) to wait for Presidio to analyze a payload before throwing a timeout exception. |
 ---
 
