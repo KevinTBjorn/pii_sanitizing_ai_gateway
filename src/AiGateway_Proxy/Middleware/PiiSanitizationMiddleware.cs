@@ -51,15 +51,21 @@ namespace AiGateway_Proxy.Middleware
 
             try
             {
-                await using RequestPromptContext promptContext = await requestParser.ParseAsync(httpContext.Request, httpContext.RequestAborted);
+                PiiGatewayExecutionResult result;
+                RouteDestination destination;
 
-                RouteDestination destination = router.ResolveRoute(promptContext.PromptRequest.Model)
-                    ?? throw new GatewayException(
-                        $"The model '{promptContext.PromptRequest.Model}' does not exist or is not configured on this gateway.",
-                        StatusCodes.Status404NotFound);
+                // Scope promptContext so file streams are disposed immediately after sanitization,
+                // releasing stream handles before the LLM call in _next().
+                {
+                    await using RequestPromptContext promptContext = await requestParser.ParseAsync(httpContext.Request, httpContext.RequestAborted);
 
-                PiiGatewayExecutionResult result = await orchestrator.OrchestrateSanitizeProcessAsync(promptContext, destination.Format, httpContext.RequestAborted);
+                    destination = router.ResolveRoute(promptContext.PromptRequest.Model)
+                        ?? throw new GatewayException(
+                            $"The model '{promptContext.PromptRequest.Model}' does not exist or is not configured on this gateway.",
+                            StatusCodes.Status404NotFound);
 
+                    result = await orchestrator.OrchestrateSanitizeProcessAsync(promptContext, destination.Format, httpContext.RequestAborted);
+                }
 
                 if (result.ContainsPii)
                 {
